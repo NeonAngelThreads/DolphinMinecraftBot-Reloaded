@@ -66,6 +66,6 @@ In this section, you will understand:
             ```bash
             java -jar "DolphinBot-[version].jar" -profiles="bot#1"
             ```   
-            If you want to start multiple bot simultaneously, 
+            If you want to start multiple bot simultaneously,  
       3. 
    2. 
