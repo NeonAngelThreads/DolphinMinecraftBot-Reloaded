@@ -2,7 +2,7 @@
   "profiles": {
     "bot#1": {
       "name": "Player494",
-      "password": "12345678",
+      "password": "example_password",
       "owner": "owner_player_name"
     }
   }
