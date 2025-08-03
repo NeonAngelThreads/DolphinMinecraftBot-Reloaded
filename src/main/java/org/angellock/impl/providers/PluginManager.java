@@ -32,8 +32,8 @@ public class PluginManager extends Manager implements IPluginInjectable{
 
     public PluginManager(@Nullable File pluginDir) {
         if (pluginDir == null || !pluginDir.exists() || !pluginDir.isDirectory()){
-            log.error(ConsoleTokens.standardizeText(ConsoleTokens.DARK_RED + "The plugin folder was invalid or not existed: "+ ConsoleTokens.YELLOW + pluginDir));
-            log.warn(ConsoleTokens.standardizeText(ConsoleTokens.GOLD + "Trying to locate the fallback directory"));
+            log.warn(ConsoleTokens.standardizeText(ConsoleTokens.DARK_RED + "The plugin folder was invalid or not existed: "+ ConsoleTokens.YELLOW + pluginDir
+                    + ConsoleTokens.GOLD + "Trying to locate the fallback directory"));
             this.pluginFolder = new File(getBaseConfigRoot(), "plugins");
 
         }

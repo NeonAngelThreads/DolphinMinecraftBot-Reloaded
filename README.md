@@ -2,20 +2,20 @@
 Dolphin bot is an advanced server robot for minecraft, with high-scalability and performance.It integrated plugin loaders like bukkit and easy-used interface styled APIs, allows you to customize event handles.
 
 # How-to-Use
-In this section, you will understand:  
-**1. How to directly start a single bot with command-line.**  
-**2. How to specify bot profile with config file without command-line.**  
-**3. How to start multiple bot simultaneously**  
-**4. How to configure advanced options**  
-**5. How to make a custom plugin**
+In this section, you will understand below how-tos:  
+- **1. How to directly start a single bot with command-line.**  
+- **2. How to specify bot profile with config file without command-line.**  
+- **3. How to start multiple bot simultaneously**  
+- **4. How to configure advanced options**  
+- **5. How to make a custom plugin**
 1. **Download the Client**  
    Download the jar archive file: `DolphinBot-[version].jar`.  
-   
+   Requirements: **Java version >= 17**
 2. **Configuration of the Bot**
    1. **Configuring Bot Profile**  
-      There are two ways to set bot config:  
-      If you want to quickly start for simplicity and only one bot started, you can use **Command-line**  
-      If you would like to start multiple bot at the same time, and access advanced options, you can use **Config file configuration**
+      There are two different ways to set bot config:  
+      - If you want to quickly start for simplicity and only one bot started, you can use **Command-line setting**  
+      - If you would like to start multiple bot at once, and access advanced options, you can use **Config file setting**
       1. **Command-line Setting**  
            In-game profile should be defined on below boot command-line.  
            An example of argument list:
@@ -27,11 +27,15 @@ In this section, you will understand:
          `-auto-reconnect` : whether reconnect to server when got kicked or disconnect by some reasons.  
          `-skin-recorder` : whether automatic capture and save online players' skins.
          
+         **Warning:**  command-line has high authority than config file, meaning that if options are duplicated, will only recognize 
+         command-line, and ignore config file one.  
          Optionally, you can specify more option by adding argument:  
-         `-owner` : Only who can use this bot.
+         `-owner` : Specifying only who can use this bot.
       2. **Config File Setting**  
-            You can also move above profile arguments into config file ``mc.bot.config.json``  
-            To specify the path to config file is optional, Use option `-config-file` to locate config directory or file.  
+            Config files include functional config `mc.bot.config.json` and profile config `bot.profiles.json`  
+            You can also move above profile arguments into config file ``bot.profiles.json`` following below formats, all config values in it will be loaded.
+            DolphinBot will apply command-line options first, duplicated options in config file will be ignored.    
+            To specify the path of config file is optional, Use option `-config-file` to locate config directory or file.  
             For example:  
             ```bash 
             java -jar "DolphinBot-[version].jar" -config-file=path/to/config.json
@@ -45,16 +49,22 @@ In this section, you will understand:
             java -jar "DolphinBot-[version].jar"
             ```
          
-            In the config file, you can create `profiles` key to specify multiple bot profiles to log to a server.
+            In the profile config file, you can create `profiles` key in `bot.profiles.json` to specify multiple bot profiles to log to a server.  
+            **Warning**: Defining multiple bots may trigger the anti-bot or anti-cheat, and some servers with strict policy may prohibit it.
             ```json
             {
                "profiles": {
                   "bot#1": {
-                     "name": "example_name",
+                     "name": "Player494",
                      "password": "123example",
                      "owner": "player_name"
                   },
-                  "bot#2": {}
+                  "bot#2": {
+                     "name": "Player495",
+                     "password": "password",
+                     "owner": "player_name"
+                  },
+                  "bot#3": {"...": "..."}
                }
             }
             ```
@@ -66,6 +76,30 @@ In this section, you will understand:
             ```bash
             java -jar "DolphinBot-[version].jar" -profiles="bot#1"
             ```   
-            If you want to start multiple bot simultaneously, 
-      3. 
-   2. 
+            If you want to start multiple bot simultaneously, specify multiple profile name as a list in option `-profiles`, for
+            each profile name, should be split with ";".  
+            **Examples:**  
+            ```bash
+            java -jar "DolphinBot-[version].jar" -profiles="bot#1;bot#2"
+            ```  
+            ```bash
+            java -jar "DolphinBot-[version].jar" -profiles="bot#1;bot#2;bot#3;..."
+            ```
+            - **Warning**: If the `-profiles` option is absented, it will load all bots in profile config by default.
+   2. **Advanced Configurations (optional)**  
+      If you want to access more advanced configs, you can edit `mc.bot.config.json`.  
+      An example for configuring this file:
+      ```json
+       {
+          "server": "2b2t.xin",
+          "port": 25565,
+          "auto-reconnecting": true,
+   
+          "packet-filter-delay": 3000,
+          "max-chunk-view": 12,
+   
+          "connect-timing-out": 2000,
+          "reconnect-delay": 3000
+      }
+      ```   
+      

@@ -4,6 +4,7 @@ import joptsimple.ArgumentAcceptingOptionSpec;
 import joptsimple.NonOptionArgumentSpec;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
+import org.angellock.impl.managers.BotManager;
 import org.angellock.impl.managers.ConfigManager;
 import org.angellock.impl.util.ConsoleDecorations;
 import org.angellock.impl.util.ConsoleTokens;
@@ -12,6 +13,8 @@ import org.slf4j.LoggerFactory;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class Start {
@@ -25,6 +28,8 @@ public class Start {
         optionParser.accepts("owner").withRequiredArg().ofType(String.class);
         optionParser.accepts("username").withRequiredArg().ofType(String.class);
         optionParser.accepts("password").withRequiredArg().ofType(String.class);
+        ArgumentAcceptingOptionSpec<String> profilesArg = optionParser.accepts("profiles").withOptionalArg().ofType(String.class);
+        ArgumentAcceptingOptionSpec<String> pluginDir = optionParser.accepts("plugin-dir").withOptionalArg().ofType(String.class);
         ArgumentAcceptingOptionSpec<String> configFile = optionParser.accepts("config-file").withOptionalArg().ofType(String.class);
         NonOptionArgumentSpec<String> unrecognizedOptions = optionParser.nonOptions();
         OptionSet parsedOption = optionParser.parse(args);
@@ -45,10 +50,13 @@ public class Start {
                 defaultConfigPath = null;
             }
         }
+        String profiles = (parsedOption.valueOf(profilesArg));
 
         ConfigManager config = new ConfigManager(parsedOption, defaultConfigPath);
-        RobotPlayer player = new RobotPlayer(config);
-        player.connect();
+        BotManager botManager = new BotManager(defaultConfigPath, ".json", config).globalPluginManager(parsedOption.valueOf(pluginDir)).loadProfiles(profiles);
+        botManager.startAll();
+        //RobotPlayer player = new RobotPlayer(config);
+        //player.connect();
 
     }
 }
