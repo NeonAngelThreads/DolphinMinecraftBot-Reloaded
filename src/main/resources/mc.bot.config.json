@@ -7,5 +7,5 @@
   "max-chunk-view": 12,
 
   "connect-timing-out": 2000,
-  "reconnect-delay": 3000
+  "reconnect-delay": 3500
 }
