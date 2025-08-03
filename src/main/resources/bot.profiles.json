@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "bot#1": {
+      "name": "Player494",
+      "password": "123example",
+      "owner": "player_name"
+    }
+  }
+}
