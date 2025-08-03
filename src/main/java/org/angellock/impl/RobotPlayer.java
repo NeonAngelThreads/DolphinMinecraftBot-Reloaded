@@ -6,8 +6,8 @@ import org.angellock.impl.util.ConsoleTokens;
 
 public class RobotPlayer extends AbstractRobot {
 
-    public RobotPlayer(ConfigManager configManager) {
-        super(configManager);
+    public RobotPlayer(ConfigManager configManager, PluginManager pluginManager) {
+        super(configManager, pluginManager);
     }
 
     @Override

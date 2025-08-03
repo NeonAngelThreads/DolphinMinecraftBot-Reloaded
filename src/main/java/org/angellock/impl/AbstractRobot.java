@@ -1,6 +1,6 @@
 package org.angellock.impl;
 
-;
+
 import org.angellock.impl.events.IConnectListener;
 import org.angellock.impl.events.IDisconnectListener;
 import org.angellock.impl.managers.ConfigManager;
@@ -20,21 +20,22 @@ public abstract class AbstractRobot implements ISendable, SessionProvider, IOpti
     protected String server;
     protected short port;
     protected String name;
+    protected String password;
     protected static final Logger log = LoggerFactory.getLogger("BotEntity");
     protected final int TIME_OUT;
     protected final int ReconnectionDelay;
     protected Thread connectingThread;
     private final PluginManager pluginManager;
 
-    public AbstractRobot(ConfigManager configManager){
+    public AbstractRobot(ConfigManager configManager, PluginManager pluginManager){
         this.config = configManager;
         String playerName = (String) this.config.getConfigValue("username");
         String serverAddress = (String) this.config.getConfigValue("server");
         short serverPort = Short.parseShort((String) this.config.getConfigValue("port"));
-        String pluginDir = (String) this.config.getConfigValue("plugin-dir");
+        this.password = (String) this.config.getConfigValue("password");
+        //String pluginDir = (String) this.config.getConfigValue("plugin-dir");
 
-        this.minecraftProtocol = new MinecraftProtocol(playerName);
-        this.pluginManager = new PluginManager(pluginDir);
+        this.pluginManager = pluginManager;
 
         this.server = serverAddress;
         this.name = playerName;
@@ -44,6 +45,21 @@ public abstract class AbstractRobot implements ISendable, SessionProvider, IOpti
 
         this.connectingThread = new Thread(this::connect);
 
+    }
+
+    public AbstractRobot withName(String userName){
+        this.name = userName;
+        return this;
+    }
+
+    public AbstractRobot withPassword(String password){
+        this.password = password;
+        return this;
+    }
+
+    public AbstractRobot buildProtocol(){
+        this.minecraftProtocol = new MinecraftProtocol(this.name);
+        return this;
     }
 
     public void connect(){
