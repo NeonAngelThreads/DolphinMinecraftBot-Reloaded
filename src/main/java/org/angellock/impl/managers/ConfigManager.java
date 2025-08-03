@@ -3,18 +3,26 @@ package org.angellock.impl.managers;
 import com.google.gson.JsonElement;
 import joptsimple.OptionSet;
 import joptsimple.OptionSpec;
+import org.angellock.impl.Start;
+import org.angellock.impl.managers.utils.Manager;
 import org.angellock.impl.util.ConsoleTokens;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 
 public class ConfigManager {
     private static final Logger log = LoggerFactory.getLogger("Config-Manager");
     private final Map<Object, Object> cache = new HashMap<>();
-    private final ResourceHelper configHelper;
+    private final RobotConfig configHelper;
     public ConfigManager(OptionSet optionList, @Nullable String defaultPath){
         for (OptionSpec<?> option: optionList.specs()){
             String stringOpt = option.options().get(0);
@@ -23,7 +31,7 @@ public class ConfigManager {
         }
         this.configHelper = new RobotConfig(defaultPath, ".json");
         this.loadConfig();
-        log.info(ConsoleTokens.standardizeText(ConsoleTokens.GRAY + "Below argument options are enabled: "+ ConsoleTokens.DARK_AQUA + cache.toString()));
+        log.info(ConsoleTokens.standardizeText(ConsoleTokens.GRAY + "below argument options are enabled: "+ ConsoleTokens.DARK_AQUA + cache.toString()));
     }
     public ConfigManager(OptionSet optionList){
         this(optionList, null);
