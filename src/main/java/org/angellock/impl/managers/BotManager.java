@@ -4,6 +4,7 @@ import com.google.gson.JsonElement;
 import org.angellock.impl.AbstractRobot;
 import org.angellock.impl.RobotPlayer;
 import org.angellock.impl.providers.PluginManager;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,7 +29,15 @@ public class BotManager extends ResourceHelper {
         return this;
     }
 
-    public BotManager loadProfiles(@Nullable String profileString){
+    public BotManager loadProfiles(String profileString){
+        String commandLinePlayerName = (String)this.botConfigHelper.getConfigValue("username");
+        String commandLinePWD = (String)this.botConfigHelper.getConfigValue("password");
+        String commandLineOwner = (String)this.botConfigHelper.getConfigValue("owner");
+        if(commandLinePlayerName != null && commandLineOwner != null && commandLinePWD != null){
+            this.registerBot(commandLinePlayerName, commandLinePWD, commandLineOwner);
+            return this;
+        }
+
         String[] profileKeys = new String[0];
         if (profileString != null) {
             profileKeys = profileString.replaceAll("\"","").split(";");
@@ -54,6 +63,11 @@ public class BotManager extends ResourceHelper {
         String password = profile.get("password").getAsString();
         AbstractRobot botInst = new RobotPlayer(this.botConfigHelper, pluginManager).withName(botName).withPassword(password).buildProtocol();
         this.bots.put(name, (RobotPlayer) botInst);
+    }
+
+    private void registerBot(String username, String password, String owner){
+        AbstractRobot botInst = new RobotPlayer(this.botConfigHelper, pluginManager).withName(username).withPassword(password).buildProtocol();
+        this.bots.put(username, (RobotPlayer) botInst);
     }
 
     public void startAll(){

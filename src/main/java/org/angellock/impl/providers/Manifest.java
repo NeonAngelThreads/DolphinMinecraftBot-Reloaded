@@ -1,16 +1,16 @@
 package org.angellock.impl.providers;
 
 public class Manifest {
-    private String mainClass;
-    private String pluginName;
+    private String entry;
+    private String name;
     private String version;
 
     public String getMainClass() {
-        return mainClass;
+        return entry;
     }
 
     public String getPluginName() {
-        return pluginName;
+        return name;
     }
 
     public String getVersion() {

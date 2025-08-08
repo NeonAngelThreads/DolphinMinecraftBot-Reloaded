@@ -58,6 +58,7 @@ public abstract class AbstractEventProcessor<T extends MinecraftPacket> extends 
     public void packetError(PacketErrorEvent event) {
         log.warn(ConsoleTokens.standardizeText(ConsoleTokens.YELLOW + "A packet error was detected: "+ConsoleTokens.GRAY+"At event " + ConsoleTokens.GOLD + event));
         log.error(ConsoleTokens.standardizeText(ConsoleTokens.GRAY + event.getCause().toString()));
+        event.setSuppress(false);
     }
 
 

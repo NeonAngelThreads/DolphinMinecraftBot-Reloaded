@@ -8,6 +8,7 @@ import org.angellock.impl.managers.BotManager;
 import org.angellock.impl.managers.ConfigManager;
 import org.angellock.impl.util.ConsoleDecorations;
 import org.angellock.impl.util.ConsoleTokens;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,7 +51,7 @@ public class Start {
                 defaultConfigPath = null;
             }
         }
-        String profiles = (parsedOption.valueOf(profilesArg));
+        @Nullable String profiles = (parsedOption.valueOf(profilesArg));
 
         ConfigManager config = new ConfigManager(parsedOption, defaultConfigPath);
         BotManager botManager = new BotManager(defaultConfigPath, ".json", config).globalPluginManager(parsedOption.valueOf(pluginDir)).loadProfiles(profiles);

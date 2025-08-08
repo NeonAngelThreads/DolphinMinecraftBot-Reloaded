@@ -16,9 +16,9 @@ import java.util.List;
 import java.util.Map;
 
 public class PluginManager extends Manager implements IPluginInjectable{
-    private static final Logger log = LoggerFactory.getLogger("Plugin-Manager");
+    private static final Logger log = LoggerFactory.getLogger(ConsoleTokens.colorizeText("&9PluginManager"));
     private final FilenameFilter pluginFilePattern = (d,name)->name.endsWith(".jar");
-    private final Map<String, Plugin> registeredPlugins = new HashMap<>();
+    private final Map<String, AbstractPlugin> registeredPlugins = new HashMap<>();
     private final File pluginFolder;
     private final PluginLoader loader;
 
@@ -32,8 +32,8 @@ public class PluginManager extends Manager implements IPluginInjectable{
 
     public PluginManager(@Nullable File pluginDir) {
         if (pluginDir == null || !pluginDir.exists() || !pluginDir.isDirectory()){
-            log.warn(ConsoleTokens.standardizeText(ConsoleTokens.DARK_RED + "The plugin folder was invalid or not existed: "+ ConsoleTokens.YELLOW + pluginDir
-                    + ConsoleTokens.GOLD + "Trying to locate the fallback directory"));
+            log.warn(ConsoleTokens.colorizeText("&4The plugin folder was invalid or not existed: &c"+ pluginDir
+                     + "&eTrying to locate the fallback directory"));
             this.pluginFolder = new File(getBaseConfigRoot(), "plugins");
 
         }
@@ -44,8 +44,15 @@ public class PluginManager extends Manager implements IPluginInjectable{
     }
 
     private void registerPlugin(Plugin plugin){
-        plugin.onLoad();
-        this.registeredPlugins.putIfAbsent(plugin.getName(), plugin);
+        this.registeredPlugins.putIfAbsent(plugin.getName(), (AbstractPlugin) plugin);
+    }
+
+    public void keepScheduleThreadsAlive(){
+        for (AbstractPlugin plugin: this.registeredPlugins.values()){
+            if (!plugin.schedulerThread.isAlive()){
+                plugin.schedulerThread.start();
+            }
+        }
     }
 
     public void loadAllPlugins(AbstractRobot botInstance){

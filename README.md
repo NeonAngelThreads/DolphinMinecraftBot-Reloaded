@@ -1,6 +1,8 @@
 # DolphinMinecraftBot-Reloaded
 Dolphin bot is an advanced server robot for minecraft, with high-scalability and performance.It integrated plugin loaders like bukkit and easy-used interface styled APIs, allows you to customize event handles.
 
+## **Shortcuts**: [Custom plugin developing guideline](PluginDocumentation.md)
+
 # How-to-Use
 In this section, you will understand below how-tos:  
 - **1. How to directly start a single bot with command-line.**  
@@ -22,15 +24,15 @@ In this section, you will understand below how-tos:
            ```bash
            java -jar "DolphinBot-[version].jar" -username=[username] -password=[password] -skin-recorder=[enable/disable]
            ```
-         `-username` : Bot displaying name in game.  
-         `-password` : Password for login or register.  
-         `-auto-reconnect` : whether reconnect to server when got kicked or disconnect by some reasons.  
-         `-skin-recorder` : whether automatic capture and save online players' skins.
+         `--username` : Bot displaying name in game.  
+         `--password` : Password for login or register.  
+         `--auto-reconnect` : whether reconnect to server when got kicked or disconnect by some reasons.  
+         `--skin-recorder` : whether automatic capture and save online players' skins.
          
          **Warning:**  command-line has high authority than config file, meaning that if options are duplicated, will only recognize 
          command-line, and ignore config file one.  
          Optionally, you can specify more option by adding argument:  
-         `-owner` : Specifying only who can use this bot.
+         `--owner` : Specifying only who can use this bot.
       2. **Config File Setting**  
             Config files include functional config `mc.bot.config.json` and profile config `bot.profiles.json`  
             You can also move above profile arguments into config file ``bot.profiles.json`` following below formats, all config values in it will be loaded.
@@ -44,7 +46,7 @@ In this section, you will understand below how-tos:
             ```bash
             java -jar "DolphinBot-[version].jar" -config-file=path/to/config_directory
             ```
-            If the `-config-file` parameter is absented, DolphinBot will create a default file on jar directory.  
+            If the `--config-file` parameter is absented, DolphinBot will create a default file on jar directory.  
             ```bash 
             java -jar "DolphinBot-[version].jar"
             ```
@@ -85,7 +87,7 @@ In this section, you will understand below how-tos:
             ```bash
             java -jar "DolphinBot-[version].jar" -profiles="bot#1;bot#2;bot#3;..."
             ```
-            - **Warning**: If the `-profiles` option is absented, it will load all bots in profile config by default.
+            - **Warning**: If the `--profiles` option is absented, it will load all bots in profile config by default.
    2. **Advanced Configurations (optional)**  
       If you want to access more advanced configs, you can edit `mc.bot.config.json`.  
       An example for configuring this file:
@@ -102,4 +104,8 @@ In this section, you will understand below how-tos:
           "reconnect-delay": 3000
       }
       ```   
-      
+      `server`: For defining server address.  
+      `port`: For defining server port.  
+      `auto-reconnecting`: Whether reconnect to server when got kicked or disconnect by some reasons.  
+      `packet-filter-delay`: Max receiving delay between every target packet.  
+      `max-chunk-view`: 

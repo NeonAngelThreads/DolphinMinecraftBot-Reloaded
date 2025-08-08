@@ -1,9 +1,12 @@
 package org.angellock.impl.providers;
 
+import org.angellock.impl.Start;
 import org.angellock.impl.managers.utils.Manager;
 import org.geysermc.mcprotocollib.network.Session;
 import org.geysermc.mcprotocollib.network.event.session.SessionListener;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.nio.file.Files;
@@ -19,6 +22,8 @@ public abstract class AbstractPlugin extends Manager implements Plugin {
     private boolean enabled = false;
     private Manifest pluginManifest;
     private List<SessionListener> listeners = new ArrayList<>();
+    private static final Logger log = LoggerFactory.getLogger(AbstractPlugin.class);
+    protected Thread schedulerThread;
 
     public AbstractPlugin(@Nullable String defaultDataPath){
         this();
@@ -42,6 +47,10 @@ public abstract class AbstractPlugin extends Manager implements Plugin {
 
     public Manifest getManifest(){
         return this.pluginManifest;
+    }
+
+    public static Logger getLogger(){
+        return log;
     }
 
     public abstract String getPluginName();
