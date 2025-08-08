@@ -27,14 +27,14 @@ public enum ConsoleTokens implements IComparable<SimpleColor>{
     private final String colorToken;
     private final char colorCode;
     private final SimpleColor hexColor;
-    private static final Pattern foreground_pattern = Pattern.compile("[&§]([0-9a-flNRU])");
+    private static final Pattern foreground_pattern = Pattern.compile("&([0-9a-flNRU])");
 
     public static String colorizeText(String msg){
         Matcher matcher = foreground_pattern.matcher(msg);
         StringBuilder result = new StringBuilder();
         while (matcher.find()) {
             char code = matcher.group(1).charAt(0);
-            matcher.appendReplacement(result, parseColorFormCode(code));
+            matcher.appendReplacement(result, parseColorFormCode(code).toString());
         }
         matcher.appendTail(result);
         return standardizeText(result.toString());
@@ -58,18 +58,13 @@ public enum ConsoleTokens implements IComparable<SimpleColor>{
         return colorCode;
     }
 
-    public static String parseColorFormCode(char code){
-        if (code == 'l'){
-            return ConsoleDecorations.BOLD.toString();
-        }else if(code == 'o'){
-            return ConsoleDecorations.ITALIC.toString();
-        }
+    public static ConsoleTokens parseColorFormCode(char code){
         for (ConsoleTokens instance: values()){
             if (instance.colorCode == Character.toUpperCase(code)){
-                return instance.toString();
+                return instance;
             }
         }
-        return ConsoleTokens.NONE.toString(); // return the default colour
+        return ConsoleTokens.NONE; // return the default colour
     }
 
     public SimpleColor getHexColor(){

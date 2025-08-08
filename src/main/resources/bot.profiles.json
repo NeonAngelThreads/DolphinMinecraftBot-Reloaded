@@ -1,8 +1,8 @@
 {
   "profiles": {
     "bot#1": {
-      "name": "DolphinBot调试",
-      "password": "33212abs",
+      "name": "Player49",
+      "password": "example_password",
       "owner": "owner_player_name"
     }
   }

@@ -5,7 +5,6 @@ import org.angellock.impl.RobotPlayer;
 import org.angellock.impl.events.packets.LoginHandler;
 import org.angellock.impl.events.packets.PlayerLogInfo;
 import org.angellock.impl.events.packets.SystemChatHandler;
-import org.angellock.impl.events.packets.TitlePacketHandler;
 import org.angellock.impl.providers.AbstractPlugin;
 import org.angellock.impl.util.ConsoleDecorations;
 import org.angellock.impl.util.ConsoleTokens;
@@ -13,7 +12,6 @@ import org.angellock.impl.util.TextComponentSerializer;
 import org.geysermc.mcprotocollib.auth.GameProfile;
 import org.geysermc.mcprotocollib.protocol.data.game.ClientCommand;
 import org.geysermc.mcprotocollib.protocol.data.game.PlayerListEntry;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.HandPreference;
 import org.geysermc.mcprotocollib.protocol.data.game.setting.ChatVisibility;
@@ -37,9 +35,6 @@ public class BaseDefaultPlugin extends AbstractPlugin {
     protected static final Logger log = LoggerFactory.getLogger("BotEntity");
     private static final String VERSION = "0.0.0";
     private static final String NAME = "Base-default-plugin";
-
-    private GameMode serverGamemode = GameMode.ADVENTURE;
-    private boolean hasLoggedIn = false;
 
     private final Map<UUID, GameProfile> onlinePlayers = new HashMap<>();
 
@@ -82,18 +77,7 @@ public class BaseDefaultPlugin extends AbstractPlugin {
                             break;
                         }
 
-                        // log.info(this.serverGamemode.name());
-                        if (!this.hasLoggedIn) {
-                            robotEntity.sendPacket(new ServerboundChatCommandPacket("login " + robotEntity.getPassword()));
-                        }else if (this.serverGamemode != GameMode.SURVIVAL){
-                            robotEntity.sendPacket(new ServerboundSetCarriedItemPacket(2));
-                            robotEntity.sendPacket(new ServerboundUseItemPacket(
-                                    Hand.MAIN_HAND,
-                                    (int) Instant.now().toEpochMilli(),
-                                    0,
-                                    0
-                            ));
-                        }
+                        robotEntity.sendPacket(new ServerboundChatCommandPacket("login " + robotEntity.getPassword()));
 
 
                     } catch (InterruptedException e) {
@@ -111,29 +95,10 @@ public class BaseDefaultPlugin extends AbstractPlugin {
             if (msg.contains("/reg <密码> <密码>")){
                 robotEntity.resetVerify();
             }
-            else if (msg.contains("请登陆")){
-                this.hasLoggedIn = false;
+            else if (msg.contains("You are logged in!")){
+                joinGame(robotEntity);
             }
             log.info(msg);
-        }));
-
-        getListeners().add(
-                new LoginHandler().addExtraAction((loginPacket) -> {
-                    this.serverGamemode = loginPacket.getCommonPlayerSpawnInfo().getGameMode();
-                    getLogger().info(loginPacket.getCommonPlayerSpawnInfo().getGameMode().name());
-                })
-        );
-
-        getListeners().add(new TitlePacketHandler().addExtraAction((titleTextPacket)->{
-            TextComponentSerializer serializer = new TextComponentSerializer();
-            String titleMsg = serializer.serialize(titleTextPacket.getText());
-            log.info(ConsoleTokens.colorizeText("&7&l[&6FromTitle&7] &R" + titleMsg));
-
-            if(titleMsg.contains("成功")){
-                this.hasLoggedIn = true;
-            } else if (titleMsg.contains("请登陆")){
-                this.hasLoggedIn = false;
-            }
         }));
 
         getListeners().add(new PlayerLogInfo.UpdateHandler().addExtraAction((updatePacket) -> {
