@@ -90,6 +90,8 @@ In this section, you will understand below how-tos:
             - **Warning**: If the `--profiles` option is absented, it will load all bots in profile config by default.
    2. **Advanced Configurations (optional)**  
       If you want to access more advanced configs, you can edit `mc.bot.config.json`.  
+      Every single config option is equilibrium to option that defined by command line, and all config value including
+      unrecognized option will be parsed, so you can add your customize config options.  
       An example for configuring this file:
       ```json
        {
@@ -107,5 +109,7 @@ In this section, you will understand below how-tos:
       `server`: For defining server address.  
       `port`: For defining server port.  
       `auto-reconnecting`: Whether reconnect to server when got kicked or disconnect by some reasons.  
-      `packet-filter-delay`: Max receiving delay between every target packet.  
-      `max-chunk-view`: 
+      `packet-filter-delay`: Max receiving delay(millis) between every target packet.  
+      `max-chunk-view`: Max scale of chunk packet receiving.
+      `connect-timing-out`: How long millis does it take to determine a connection time out.
+      `reconnect-delay`: Min delay(millis) for cooling down when reconnect a server.

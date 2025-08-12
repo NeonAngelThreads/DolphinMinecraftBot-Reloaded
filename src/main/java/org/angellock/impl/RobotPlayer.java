@@ -20,18 +20,20 @@ public class RobotPlayer extends AbstractRobot {
     @Override
     public void onQuit(String reason) {
         long millis = System.currentTimeMillis() - this.connectTime;
-        log.info("Session Duration: {}ms", millis);
+        log.info(ConsoleTokens.colorizeText("&7Session Duration: &f{}ms"), millis);
         log.info(ConsoleTokens.standardizeText(ConsoleTokens.DARK_RED + "Disconnected from the server!"));
         log.info(ConsoleTokens.standardizeText(ConsoleTokens.GOLD + "Reason: " + ConsoleTokens.LIGHT_PURPLE + reason));
         if (this.config.getConfigValue("auto-reconnecting").equals("true")){
             log.info(ConsoleTokens.standardizeText(ConsoleTokens.DARK_BLUE + "Trying to reconnect to the server..."));
             try {
                 if (reason.contains("验证")){
-                    resetVerify();
+                    log.info("bypassing");
+                    this.isByPassedVerification = false;
                 } else {
                     Thread.sleep(0L);
                 }
-                log.info(ConsoleTokens.standardizeText(ConsoleTokens.GREEN + "Timing completed."));
+
+                log.info(ConsoleTokens.colorizeText("&aTiming completed."));
             } catch (InterruptedException ignore) {}
             if (!super.connectingThread.isAlive()) {
                 super.connect();
@@ -46,6 +48,6 @@ public class RobotPlayer extends AbstractRobot {
 
     @Override
     public void onPreLogin() {
-        log.info(ConsoleTokens.standardizeText(ConsoleTokens.DARK_AQUA + "Attempt to join to the server "+ this.server+':'+this.port +". Waiting for server establishing the connection..."));
+        log.info(ConsoleTokens.colorizeText("&l&bAttempt to join to the server &3"+ this.server+':'+this.port +". &bWaiting for server establishing the connection..."));
     }
 }

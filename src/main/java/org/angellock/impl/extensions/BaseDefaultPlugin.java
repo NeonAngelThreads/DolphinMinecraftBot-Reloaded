@@ -1,5 +1,7 @@
 package org.angellock.impl.extensions;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
 import org.angellock.impl.AbstractRobot;
 import org.angellock.impl.RobotPlayer;
 import org.angellock.impl.events.packets.LoginHandler;
@@ -37,9 +39,8 @@ public class BaseDefaultPlugin extends AbstractPlugin {
     protected static final Logger log = LoggerFactory.getLogger("BotEntity");
     private static final String VERSION = "0.0.0";
     private static final String NAME = "Base-default-plugin";
-
-    private GameMode serverGamemode = GameMode.ADVENTURE;
-    private boolean hasLoggedIn = false;
+    private long lastTitleTime;
+    private String lastTitle;
 
     private final Map<UUID, GameProfile> onlinePlayers = new HashMap<>();
 
@@ -74,66 +75,12 @@ public class BaseDefaultPlugin extends AbstractPlugin {
         getListeners().add(new LoginHandler().addExtraAction(packet -> {
             log.info(ConsoleTokens.standardizeText(ConsoleDecorations.BOLD.toString() + ConsoleTokens.AQUA + "Successfully logged-in to server world."));
 
-            this.schedulerThread = new Thread(() -> {
-                while (true){
-                    try {
-                        Thread.sleep(1500L);
-                        if (!robotEntity.getSession().isConnected()){
-                            break;
-                        }
-
-                        // log.info(this.serverGamemode.name());
-                        if (!this.hasLoggedIn) {
-                            robotEntity.sendPacket(new ServerboundChatCommandPacket("login " + robotEntity.getPassword()));
-                        }else if (this.serverGamemode != GameMode.SURVIVAL){
-                            robotEntity.sendPacket(new ServerboundSetCarriedItemPacket(2));
-                            robotEntity.sendPacket(new ServerboundUseItemPacket(
-                                    Hand.MAIN_HAND,
-                                    (int) Instant.now().toEpochMilli(),
-                                    0,
-                                    0
-                            ));
-                        }
-
-
-                    } catch (InterruptedException e) {
-                        throw new RuntimeException();
-                    }
-                }
-            });
-            this.schedulerThread.start();
-
         }));
 
         getListeners().add(new SystemChatHandler().addExtraAction((packet) -> {
             TextComponentSerializer componentSerializer = new TextComponentSerializer();
             String msg = componentSerializer.serialize(packet.getContent());
-            if (msg.contains("/reg <密码> <密码>")){
-                robotEntity.resetVerify();
-            }
-            else if (msg.contains("请登陆")){
-                this.hasLoggedIn = false;
-            }
             log.info(msg);
-        }));
-
-        getListeners().add(
-                new LoginHandler().addExtraAction((loginPacket) -> {
-                    this.serverGamemode = loginPacket.getCommonPlayerSpawnInfo().getGameMode();
-                    getLogger().info(loginPacket.getCommonPlayerSpawnInfo().getGameMode().name());
-                })
-        );
-
-        getListeners().add(new TitlePacketHandler().addExtraAction((titleTextPacket)->{
-            TextComponentSerializer serializer = new TextComponentSerializer();
-            String titleMsg = serializer.serialize(titleTextPacket.getText());
-            log.info(ConsoleTokens.colorizeText("&7&l[&6FromTitle&7] &R" + titleMsg));
-
-            if(titleMsg.contains("成功")){
-                this.hasLoggedIn = true;
-            } else if (titleMsg.contains("请登陆")){
-                this.hasLoggedIn = false;
-            }
         }));
 
         getListeners().add(new PlayerLogInfo.UpdateHandler().addExtraAction((updatePacket) -> {
@@ -149,6 +96,17 @@ public class BaseDefaultPlugin extends AbstractPlugin {
                 }
             }
         ));
+
+        getListeners().add(new TitlePacketHandler().addExtraAction((titleTextPacket)-> {
+            String currentText = ((TextComponent) titleTextPacket.getText()).content();
+            if (!currentText.equals(this.lastTitle) || System.currentTimeMillis() - this.lastTitleTime > 1500) {
+                TextComponentSerializer serializer = new TextComponentSerializer();
+                String titleMsg = serializer.serialize(titleTextPacket.getText());
+                log.info(ConsoleTokens.colorizeText("&7&l[&6FromTitle&7] &R" + titleMsg));
+                this.lastTitleTime = System.currentTimeMillis();
+                this.lastTitle = currentText;
+            }
+        }));
 
         getListeners().add(new PlayerLogInfo.RemoveHandler().addExtraAction((packet -> {
             if(packet.getProfileIds().isEmpty()) {

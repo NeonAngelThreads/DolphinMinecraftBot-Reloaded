@@ -1,0 +1,188 @@
+package org.angellock.impl.extensions;
+
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
+import org.angellock.impl.AbstractRobot;
+import org.angellock.impl.events.IDisconnectListener;
+import org.angellock.impl.events.packets.LoginHandler;
+import org.angellock.impl.events.packets.SystemChatHandler;
+import org.angellock.impl.events.packets.TitlePacketHandler;
+import org.angellock.impl.providers.AbstractPlugin;
+import org.angellock.impl.util.ConsoleTokens;
+import org.angellock.impl.util.TextComponentSerializer;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.ServerboundChatCommandPacket;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundSetCarriedItemPacket;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundUseItemPacket;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.time.Instant;
+
+public class PlayerVerificationPlugin extends AbstractPlugin {
+    protected int verifyTimes = 0;
+    private Thread autoLoginThread;
+    private GameMode serverGamemode = GameMode.ADVENTURE;
+    private boolean hasLoggedIn = false;
+    private AbstractRobot botInstance;
+    protected static final Logger log = LoggerFactory.getLogger("AutomaticVerify");
+    @Override
+    public String getPluginName() {
+        return "null";
+    }
+
+    @Override
+    public String getVersion() {
+        return "null";
+    }
+
+    @Override
+    public String getDescription() {
+        return "null";
+    }
+
+    @Override
+    public void onDisable() {
+
+    }
+
+    @Override
+    public void onLoad() {
+
+    }
+
+    @Override
+    public void onEnable(AbstractRobot entityBot) {
+        this.botInstance = entityBot;
+
+        if (this.schedulerThread == null) {
+            this.schedulerThread = new Thread(() -> {
+                int var = 0;
+                while (true) {
+                    try {
+                        int i;
+                        do {
+                            i = entityBot.getRandomizer().nextInt(1000)%8;
+                        } while (Math.abs(var - i) < 1);
+                        var = i;
+                        Thread.sleep(500L*(1+var));
+
+                        if (entityBot.getSession().isConnected()){
+                            if (!this.isBypassed()) {
+                                if(this.verifyTimes < 3){
+                                    this.verifyTimes++;
+                                    entityBot.getSession().disconnect(Component.empty());
+                                }
+                                log.info(ConsoleTokens.colorizeText("&7正在进行人机验证..."));
+                                if (System.currentTimeMillis() - entityBot.getConnectTime() > 10700L) {
+                                    log.info(ConsoleTokens.colorizeText("&a机器人验证已完毕."));
+                                    entityBot.getPluginManager().loadAllPlugins(entityBot);
+                                    this.botInstance.setBypassed(true);
+
+                                    log.info(ConsoleTokens.colorizeText("&6=&aRobot verification successfully passed, sending reg command!&6="));
+                                    entityBot.sendPacket(new ServerboundChatCommandPacket("reg " + entityBot.getPassword() +" "+ entityBot.getPassword()));
+                                    this.verifyTimes = 0;
+
+                                    Thread.sleep(3000L);
+                                    entityBot.getSession().disconnect(Component.empty());
+
+                                }
+                            }
+                        }
+                    } catch (InterruptedException e) {
+                        entityBot.getSession().disconnect("Interrupted");
+                        throw new RuntimeException();
+                    }
+                }
+            });
+        }
+
+        if (this.autoLoginThread == null) {
+            this.autoLoginThread = new Thread(() -> {
+                while (true) {
+                    try {
+                        Thread.sleep(1500L);
+                        if (!entityBot.getSession().isConnected()){
+                            break;
+                        }
+
+                        log.info(this.serverGamemode.name());
+                        if (!this.hasLoggedIn) {
+                            entityBot.sendPacket(new ServerboundChatCommandPacket("login " + entityBot.getPassword()));
+                        }else if (this.serverGamemode != GameMode.SURVIVAL){
+                            entityBot.sendPacket(new ServerboundSetCarriedItemPacket(2));
+                            entityBot.sendPacket(new ServerboundUseItemPacket(
+                                    Hand.MAIN_HAND,
+                                    (int) Instant.now().toEpochMilli(),
+                                    0,
+                                    0
+                            ));
+                        }
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            });
+        }
+
+        getListeners().add(new SystemChatHandler().addExtraAction((packet) -> {
+            TextComponentSerializer componentSerializer = new TextComponentSerializer();
+            String msg = componentSerializer.serialize(packet.getContent());
+            if (msg.contains("/reg <密码> <密码>")){
+                this.resetVerify();
+            }
+            else if (msg.contains("请登陆")){
+                this.hasLoggedIn = false;
+            } else if (msg.contains("请注册")){
+                log.info("registering");
+            }
+        }));
+
+        getListeners().add(
+                new LoginHandler().addExtraAction((loginPacket) -> {
+                    this.serverGamemode = loginPacket.getCommonPlayerSpawnInfo().getGameMode();
+                    getLogger().info(loginPacket.getCommonPlayerSpawnInfo().getGameMode().name());
+                })
+        );
+
+        getListeners().add(new TitlePacketHandler().addExtraAction((titleTextPacket)->{
+            String titleMsg = ((TextComponent) titleTextPacket.getText()).content();
+            if(titleMsg.contains("成功")){
+                this.hasLoggedIn = true;
+            } else if (titleMsg.contains("请登陆")){
+                this.hasLoggedIn = false;
+            }
+        }));
+
+        getListeners().add((IDisconnectListener) event -> {
+            String reason = event.getReason().toString();
+            try {
+                if (reason.contains("验证")){
+                    resetVerify();
+                } else {
+                    Thread.sleep(0L);
+                }
+                log.info(ConsoleTokens.colorizeText("&aTiming completed."));
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        });
+
+        if (!this.autoLoginThread.isAlive()) {
+            this.autoLoginThread.start();
+        }
+        if (!this.schedulerThread.isAlive()) {
+            this.schedulerThread.start();
+        }
+    }
+
+    public void resetVerify(){
+        this.botInstance.setBypassed(false);
+    }
+
+    private boolean isBypassed(){
+        return this.botInstance.isByPassedVerification();
+    }
+
+}

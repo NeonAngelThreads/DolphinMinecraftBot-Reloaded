@@ -1,7 +1,6 @@
 package org.angellock.impl;
 
 
-import net.kyori.adventure.key.Key;
 import org.angellock.impl.events.IConnectListener;
 import org.angellock.impl.events.IDisconnectListener;
 import org.angellock.impl.managers.ConfigManager;
@@ -12,17 +11,9 @@ import org.geysermc.mcprotocollib.network.Session;
 import org.geysermc.mcprotocollib.network.tcp.TcpClientSession;
 import org.geysermc.mcprotocollib.protocol.MinecraftProtocol;
 import org.geysermc.mcprotocollib.protocol.codec.MinecraftPacket;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
-import org.geysermc.mcprotocollib.protocol.packet.common.serverbound.ServerboundCustomPayloadPacket;
-import org.geysermc.mcprotocollib.protocol.packet.common.serverbound.ServerboundKeepAlivePacket;
-import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.ServerboundChatCommandPacket;
-import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.*;
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.time.Instant;
-import java.util.Objects;
 import java.util.Random;
 
 public abstract class AbstractRobot implements ISendable, SessionProvider, IOptionalProcedures {
@@ -39,9 +30,8 @@ public abstract class AbstractRobot implements ISendable, SessionProvider, IOpti
     protected Thread connectingThread;
     private final PluginManager pluginManager;
     protected final Random randomizer = new Random();
+    protected long connectDuration = 0;
     protected boolean isByPassedVerification = true;
-    protected int verifyTimes = 0;
-    protected long connectTime = 0;
 
     public AbstractRobot(ConfigManager configManager, PluginManager pluginManager){
         this.config = configManager;
@@ -81,20 +71,10 @@ public abstract class AbstractRobot implements ISendable, SessionProvider, IOpti
     public String getPassword(){
         return this.password;
     }
-    public void resetVerify(){
-        verifyTimes = 0;
-        isByPassedVerification = false;
-    }
 
-    public boolean isVerified(){
-        return this.isByPassedVerification;
-    }
     public void connect(){
         onPreLogin();
         this.serverSession = new TcpClientSession(this.server, this.port, minecraftProtocol);
-        if (this.isByPassedVerification) {
-            this.pluginManager.loadAllPlugins(this);
-        }
 
         this.serverSession.addListener((IConnectListener) event -> onJoin());
 
@@ -103,48 +83,53 @@ public abstract class AbstractRobot implements ISendable, SessionProvider, IOpti
             onQuit(event.getReason().toString());
         });
         this.serverSession.connect();
-        this.connectTime = System.currentTimeMillis();
+        this.connectDuration = System.currentTimeMillis();
 
-        int var = 0;
-        try {
+        if (this.isByPassedVerification) {
+            this.getPluginManager().loadAllPlugins(this);
+        }
 
-            while (true) {
-                int i = 0;
-                while (Math.abs(var - i) < 1){
-                    i = randomizer.nextInt(1000)%8;
+        while (true) {
+            try {
+                Thread.sleep(19L);
+                if (!this.serverSession.isConnected()){
+                    this.connectDuration = System.currentTimeMillis();
                 }
-                var = i;
-                Thread.sleep(1000L*(1+var));
 
-                if (!serverSession.isConnected()){
-                    this.connectTime = System.currentTimeMillis();
-                }
-                else {
-                    if (!this.isByPassedVerification) {
-                        if(this.verifyTimes < 3){
-                            this.verifyTimes++;
-                            this.serverSession.disconnect("");
-                        }
-                        log.info(ConsoleTokens.colorizeText("&7正在进行人机验证..."));
-                        if (System.currentTimeMillis() - this.connectTime > 10700L) {
-                            log.info(ConsoleTokens.colorizeText("&a机器人验证已完毕."));
-                            this.pluginManager.loadAllPlugins(this);
-                            this.isByPassedVerification = true;
-                            if(this.isVerified()){
-                                this.sendPacket(new ServerboundChatCommandPacket("reg " + this.getPassword() +" "+ this.getPassword()));
-                                Thread.sleep(3000L);
-                                this.serverSession.disconnect("");
-                            }
-                        }
-                    }
-                }
+//                if (!serverSession.isConnected()){
+//                    this.connectTime = System.currentTimeMillis();
+//                }
+//                else {
+//                    if (!this.isByPassedVerification) {
+//                        if(this.verifyTimes < 3){
+//                            this.verifyTimes++;
+//                            this.serverSession.disconnect(Component.empty());
+//                        }
+//                        log.info(ConsoleTokens.colorizeText("&7正在进行人机验证..."));
+//                        if (System.currentTimeMillis() - this.connectTime > 10700L) {
+//                            log.info(ConsoleTokens.colorizeText("&a机器人验证已完毕."));
+//                            this.pluginManager.loadAllPlugins(this);
+//                            this.isByPassedVerification = true;
+//                            if(this.isVerified()){
+//                                this.sendPacket(new ServerboundChatCommandPacket("reg " + this.getPassword() +" "+ this.getPassword()));
+//                                Thread.sleep(3000L);
+//                                this.serverSession.disconnect(Component.empty());
+//                            }
+//                        }
+//                    }
+//                }
 
                 Thread.onSpinWait();
             }
-        }catch (InterruptedException e){
-            this.serverSession.disconnect("Interrupted By Client");
-            throw new RuntimeException();
+            catch (InterruptedException e){
+                this.serverSession.disconnect("Interrupted");
+                throw new RuntimeException();
+            }
         }
+    }
+
+    public void setBypassed(boolean bypassed) {
+        this.isByPassedVerification = bypassed;
     }
 
     @Override
@@ -155,5 +140,20 @@ public abstract class AbstractRobot implements ISendable, SessionProvider, IOpti
     @Override
     public Session getSession(){
         return this.serverSession;
+    }
+
+    public PluginManager getPluginManager() {
+        return pluginManager;
+    }
+
+    public Random getRandomizer() {
+        return randomizer;
+    }
+    public long getConnectTime() {
+        return connectDuration;
+    }
+
+    public boolean isByPassedVerification() {
+        return isByPassedVerification;
     }
 }

@@ -2,6 +2,7 @@ package org.angellock.impl.providers;
 
 import org.angellock.impl.AbstractRobot;
 import org.angellock.impl.extensions.BaseDefaultPlugin;
+import org.angellock.impl.extensions.PlayerVerificationPlugin;
 import org.angellock.impl.managers.utils.Manager;
 import org.angellock.impl.util.ConsoleTokens;
 import org.geysermc.mcprotocollib.network.event.session.SessionListener;
@@ -58,10 +59,20 @@ public class PluginManager extends Manager implements IPluginInjectable{
     public void loadAllPlugins(AbstractRobot botInstance){
         Plugin basePlugin = new BaseDefaultPlugin();
         enable(basePlugin, botInstance);
+        Plugin verifyPlugin = new PlayerVerificationPlugin();
+        enable(verifyPlugin, botInstance);
 
         File[] plugins = this.pluginFolder.listFiles(this.pluginFilePattern);
+        if(!this.pluginFolder.exists()){
+            boolean successful = this.pluginFolder.mkdir();
+            if (!successful){
+                log.error(ConsoleTokens.colorizeText("&4Failed to create the plugin folder."));
+            }else {
+                log.info(ConsoleTokens.colorizeText("&7Successfully created new plugin folder."));
+            }
+        }
         if(plugins == null){
-            log.error("The plugin folder was invalid or not found by removed, plugins will not be loaded.");
+            log.error(ConsoleTokens.colorizeText("&6The plugin folder was invalid or not found by removed, plugins will not be loaded."));
             return;
         }
         for (File plugin: plugins){
@@ -96,9 +107,11 @@ public class PluginManager extends Manager implements IPluginInjectable{
 
             List<SessionListener> listeners = plugin.getListeners();
             for (SessionListener listener : listeners) {
+                log.info(ConsoleTokens.colorizeText("&7[&bEventBus&7]&eRegistering Listener From Plugin {}, &6Injecting Action Object &b{}"), plugin.getName(), listener.toString());
                 provider.getSession().addListener(listener);
             }
         }
+        log.info(ConsoleTokens.colorizeText("&aSuccessfully registered plugin &2{},\n &5version: &d{},\n &bdescription: &3{}"));
     }
 
     public void loadPlugin(AbstractRobot botInstance, File target) {
