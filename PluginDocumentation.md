@@ -118,7 +118,7 @@ In this section, you will learn:
    After that, you can use your packet handler ``MyHandler`` class to register your custom listener at your custom plugin.
    By using `.addExtraAction()`, you can add your wanted action towards `MyHandler`. Finally, add it to the global listener.  
    ````java
-    import org.angellock.impl.extensions.MyHandler;
+    import org.angellock.impl.extensions.examples.MyHandler;
 
     @Override
     public void onEnable(AbstractRobot entityBot) {

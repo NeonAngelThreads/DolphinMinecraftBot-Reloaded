@@ -109,7 +109,7 @@ In this section, you will understand below how-tos:
       `server`: For defining server address.  
       `port`: For defining server port.  
       `auto-reconnecting`: Whether reconnect to server when got kicked or disconnect by some reasons.  
-      `packet-filter-delay`: Max receiving delay(millis) between every target packet.  
-      `max-chunk-view`: Max scale of chunk packet receiving.
-      `connect-timing-out`: How long millis does it take to determine a connection time out.
-      `reconnect-delay`: Min delay(millis) for cooling down when reconnect a server.
+      `packet-filter-delay`: Max receiving delay(millis) between every target packet.   
+      `max-chunk-view`: Max scale of chunk packet receiving.  
+      `connect-timing-out`: How long millis does it take to determine a connection time out.  
+      `reconnect-delay`: Min delay(millis) for cooling down when reconnect a server.  

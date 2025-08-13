@@ -1,4 +1,4 @@
-package org.angellock.impl.extensions;
+package org.angellock.impl.extensions.examples;
 
 import org.angellock.impl.AbstractRobot;
 import org.angellock.impl.events.packets.LoginHandler;
