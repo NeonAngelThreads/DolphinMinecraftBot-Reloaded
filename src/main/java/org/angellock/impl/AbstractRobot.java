@@ -14,6 +14,8 @@ import org.geysermc.mcprotocollib.protocol.codec.MinecraftPacket;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayDeque;
+import java.util.Queue;
 import java.util.Random;
 
 public abstract class AbstractRobot implements ISendable, SessionProvider, IOptionalProcedures {
@@ -32,6 +34,7 @@ public abstract class AbstractRobot implements ISendable, SessionProvider, IOpti
     protected final Random randomizer = new Random();
     protected long connectDuration = 0;
     protected boolean isByPassedVerification = true;
+    private ChatMessageManager messageManager;
 
     public AbstractRobot(ConfigManager configManager, PluginManager pluginManager){
         this.config = configManager;
@@ -72,9 +75,14 @@ public abstract class AbstractRobot implements ISendable, SessionProvider, IOpti
         return this.password;
     }
 
+    public ChatMessageManager getMessageManager() {
+        return messageManager;
+    }
+
     public void connect(){
         onPreLogin();
         this.serverSession = new TcpClientSession(this.server, this.port, minecraftProtocol);
+        this.messageManager = new ChatMessageManager(this.serverSession);
 
         this.serverSession.addListener((IConnectListener) event -> onJoin());
 
@@ -91,10 +99,11 @@ public abstract class AbstractRobot implements ISendable, SessionProvider, IOpti
 
         while (true) {
             try {
-                Thread.sleep(19L);
+                Thread.sleep(500L);
                 if (!this.serverSession.isConnected()){
                     this.connectDuration = System.currentTimeMillis();
                 }
+                this.messageManager.pollMessage();
 
 //                if (!serverSession.isConnected()){
 //                    this.connectTime = System.currentTimeMillis();

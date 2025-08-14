@@ -34,8 +34,7 @@ public class SimpleColor implements IComparable<ConsoleTokens> {
         return B;
     }
 
-    public static SimpleColor parseColorFromHex(int hexCode){
-        String hexString = Integer.toHexString(hexCode);
+    public static SimpleColor parseColorFromHex(String hexString){
         short red = Short.parseShort(hexString.substring(0,2), 16);
         short gre = Short.parseShort(hexString.substring(2,4), 16);
         short blu = Short.parseShort(hexString.substring(4,6), 16);
@@ -47,12 +46,12 @@ public class SimpleColor implements IComparable<ConsoleTokens> {
     }
 
     public boolean isValid(){
-        return this.R > 0 || this.G > 0 || this.B > 0;
+        return this.R >= 0 || this.G >= 0 || this.B >= 0;
     }
 
     @Override
     public int getDelta(ConsoleTokens object) {
-        if(!this.isValid() || !object.getHexColor().isValid()){
+        if(!object.getHexColor().isValid()){
             return Integer.MAX_VALUE;
         }
 

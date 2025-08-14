@@ -4,6 +4,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import org.angellock.impl.AbstractRobot;
 import org.angellock.impl.events.IDisconnectListener;
+import org.angellock.impl.events.packets.ContainerPacketHandler;
 import org.angellock.impl.events.packets.LoginHandler;
 import org.angellock.impl.events.packets.SystemChatHandler;
 import org.angellock.impl.events.packets.TitlePacketHandler;
@@ -12,13 +13,19 @@ import org.angellock.impl.util.ConsoleTokens;
 import org.angellock.impl.util.TextComponentSerializer;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
+import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerAction;
+import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerActionType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.ServerboundChatCommandPacket;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundContainerButtonClickPacket;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundContainerClickPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundSetCarriedItemPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundUseItemPacket;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
+import java.util.HashMap;
 
 public class PlayerVerificationPlugin extends AbstractPlugin {
     protected int verifyTimes = 0;
@@ -107,7 +114,7 @@ public class PlayerVerificationPlugin extends AbstractPlugin {
                             break;
                         }
 
-                        log.info(this.serverGamemode.name());
+                        //log.info(this.serverGamemode.name());
                         if (!this.hasLoggedIn) {
                             entityBot.sendPacket(new ServerboundChatCommandPacket("login " + entityBot.getPassword()));
                         }else if (this.serverGamemode != GameMode.SURVIVAL){
@@ -125,6 +132,13 @@ public class PlayerVerificationPlugin extends AbstractPlugin {
                 }
             });
         }
+
+        getListeners().add(new ContainerPacketHandler().addExtraAction((packet -> {
+            String title = ConsoleTokens.colorizeText(((TextComponent)packet.getTitle()).content().strip());
+            log.info(ConsoleTokens.colorizeText("&7[Inventory] &7Container opened, with containerId: &9{}, &6Title: \"&l{}\""), packet.getContainerId(), title);
+            entityBot.sendPacket(new ServerboundContainerButtonClickPacket(packet.getContainerId(), 4));
+            entityBot.sendPacket(new ServerboundContainerClickPacket(packet.getContainerId(), 0, 4, ContainerActionType.CLICK_ITEM, (ContainerAction) () -> 0, new ItemStack(0), new HashMap<>()));
+        })));
 
         getListeners().add(new SystemChatHandler().addExtraAction((packet) -> {
             TextComponentSerializer componentSerializer = new TextComponentSerializer();

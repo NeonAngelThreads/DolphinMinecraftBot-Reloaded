@@ -2,8 +2,9 @@
 # Customized Plugin Developing Guide
 In this section, you will learn:
 - **1. Plugin Jar Structures**
-- **2. Understand Plugin Lifecycles**  
-- **3. To Create a Simple Plugin**  
+- **2. To Create a Simple Plugin**
+- **3. Understand Plugin Lifecycles**  
+
 
 ## 1. Plugin Structure
   Plugin jar files are supposed to be contained the plugin manifest file `plugin.json` inside the root of jar file.  
@@ -20,7 +21,7 @@ In this section, you will learn:
   **An example for configuring the `plugin.json`:**
   ````json
    {
-      "entry": "MyPluginClassName",
+      "entry": "org.me.plugin.MyPlugin",
       "name": "MyPlugin",
       "version": "1.0.0"
    }
@@ -30,6 +31,10 @@ In this section, you will learn:
     it will scan all classes that extends `AbstractPlugin`, if class not found, it will skip and ignore this plugin.  
 
 ## 2. Build A Simple Plugin
+  Before start, you need to add DolphinAPI dependency. There are following steps:  
+  - Download `DolphinBot-<NEWEST-VERSION>-RELEASE.jar` jar archive.  
+  - Add this archive as dependency to your project.     
+
   Every single plugin entry class needs to extend the `AbstractPlugin` class:
 
    ````java
@@ -79,6 +84,9 @@ In this section, you will learn:
     }
 
    ````
+  - You can also refer to the example plugin in folder `/example-plugin/example_plugin` for help, or you can base on this demo plugin as your template to develop your own plugin.  
+  - After you package your plugin, put the packaged plugin in folder `/plugins`.  
+
   **1. Deep Understand DolphinAPIs:**  
     In above plugin code, at `onEnable()` method, we used `getListeners()` method to get the collection of packet listeners in this plugin.  
     

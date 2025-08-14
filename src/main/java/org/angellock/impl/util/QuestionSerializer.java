@@ -1,5 +1,7 @@
 package org.angellock.impl.util;
 
+import org.angellock.impl.managers.QuestionManager;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -9,9 +11,11 @@ public class QuestionSerializer {
     private String question;
     private Map<String, String> answers = new HashMap<>();
     private boolean validQuestion;
-    private String stringQuestion;
-    public QuestionSerializer(String stringQuestion) {
+    private final String stringQuestion;
+    private final QuestionManager questionManager;
+    public QuestionSerializer(String stringQuestion, QuestionManager manager) {
         this.stringQuestion = stringQuestion;
+        this.questionManager = manager;
     }
 
     public void build(){
@@ -45,7 +49,7 @@ public class QuestionSerializer {
 
     public String getAnswer(){
         for (String key: this.answers.keySet()){
-            if (key.contains("54")){
+            if (key.contains(this.questionManager.fetchStringAnswer(this.question))){
                 return this.answers.get(key);
             }
         }

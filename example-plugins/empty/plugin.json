@@ -1,0 +1,5 @@
+{
+  "entry": "org.me.plugin.MyPlugin",
+  "name": "MyPlugin",
+  "version": "1.0.0"
+}

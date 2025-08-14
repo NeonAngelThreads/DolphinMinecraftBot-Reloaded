@@ -106,12 +106,15 @@ public class PluginManager extends Manager implements IPluginInjectable{
             plugin.onEnable(provider);
 
             List<SessionListener> listeners = plugin.getListeners();
+            log.info(ConsoleTokens.colorizeText("&7[&bEventBus&7] &eRegistering Listener From Plugin &6{}"), plugin.getName());
+
             for (SessionListener listener : listeners) {
-                log.info(ConsoleTokens.colorizeText("&7[&bEventBus&7]&eRegistering Listener From Plugin {}, &6Injecting Action Object &b{}"), plugin.getName(), listener.toString());
+                log.info(ConsoleTokens.colorizeText("&7[&bEventBus&7] &6Injecting Action Object &7&l{}"), listener.toString());
                 provider.getSession().addListener(listener);
+
             }
         }
-        log.info(ConsoleTokens.colorizeText("&aSuccessfully registered plugin &2{},\n &5version: &d{},\n &bdescription: &3{}"));
+        log.info(ConsoleTokens.colorizeText("&aSuccessfully registered plugin &2{}, &dversion: &5{}, &bdescription: &3{}"), plugin.getName(), plugin.getVersion(), plugin.getDescription());
     }
 
     public void loadPlugin(AbstractRobot botInstance, File target) {

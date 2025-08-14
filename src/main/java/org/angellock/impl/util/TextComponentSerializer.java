@@ -24,9 +24,9 @@ public class TextComponentSerializer implements ComponentSerializer<Component, C
     private void serializeColorAndStyle(Component component){
         Style style = component.style();
         TextColor color = style.color();
-        ConsoleTokens colorToken = ConsoleTokens.BLACK; // fallback color target
+        ConsoleTokens colorToken = ConsoleTokens.NONE; // fallback color target
         if (color != null) {
-            SimpleColor textColour = SimpleColor.parseColorFromHex(color.value());
+            SimpleColor textColour = SimpleColor.parseColorFromHex(color.asHexString().substring(1));
             colorToken = ConsoleTokens.findMostSimilarANSIColor(textColour);
         }
         this.result.append(colorToken);

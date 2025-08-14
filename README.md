@@ -1,23 +1,38 @@
 # DolphinMinecraftBot-Reloaded
-Dolphin bot is an advanced server robot for minecraft, with high-scalability and performance.It integrated plugin loaders like bukkit and easy-used interface styled APIs, allows you to customize event handles.
+A lightweight, reliable, intelligent MC bot for general minecraft server, with high-scalability and performance. It integrated plugin loaders like bukkit and easy-used interface styled APIs, allows you to customize event handles.
 
-## **Shortcuts**: [Custom plugin developing guideline](PluginDocumentation.md)
 
-# How-to-Use
+## Why DolphinBot?
+   - **High performance**, DolphinBot allows you to start multiple bot instances at one client with low CPU usage.   
+   - **High reliability**, ability to bypass 2b2t's human verification, auto-reconnect when disconnected, long term running with no worries for losing connection.  
+   - **High extensibility**, DolphinBot embedded mature DolphinAPI that contains variety of `packet listeners`, `event systems` and easy-used `event handlers` based on `mc protocol lib`,
+     It integrates a bukkit-like plugin API, allowing you to develop custom plugins at very short time.  
+   - **Advanced logging system**, DolphinAPI also implemented `TextComponent` serializer to parse rich colors and styles for server messages, with more useful information.
+   - **Easy to use**, directly run, you can put the bot profile(s) into config file instead of defining on command-line, fast start.
+### **Shortcuts**: [Custom plugin developing guideline](PluginDocumentation.md)
+## Features:
+   - Bypassing human verification in most servers including `2b2t.xin`.
+   - Supporting to configure the bot clusters, and start at once.
+   - Supporting colourful console logging strings expression `colorizeText("&6Hello &lWorld")`.
+   - Automatic answer questions in `2b2t.xin` for speeding up login process.
+## Getting Started
 In this section, you will understand below how-tos:  
-- **1. How to directly start a single bot with command-line.**  
-- **2. How to specify bot profile with config file without command-line.**  
-- **3. How to start multiple bot simultaneously**  
-- **4. How to configure advanced options**  
-- **5. How to make a custom plugin**
+  - **1. How to directly start a single bot with command-line.**  
+  - **2. How to specify bot profile with config file without command-line.**  
+  - **3. How to start multiple bot simultaneously**  
+  - **4. How to configure advanced options**  
+  - **5. How to make a custom plugin**  
+
 1. **Download the Client**  
    Download the jar archive file: `DolphinBot-[version].jar`.  
    Requirements: **Java version >= 17**
 2. **Configuration of the Bot**
    1. **Configuring Bot Profile**  
       There are two different ways to set bot config:  
+   
       - If you want to quickly start for simplicity and only one bot started, you can use **Command-line setting**  
-      - If you would like to start multiple bot at once, and access advanced options, you can use **Config file setting**
+      - If you would like to start multiple bot at once, and access advanced options, you can use **Config file setting**    
+      
       1. **Command-line Setting**  
            In-game profile should be defined on below boot command-line.  
            An example of argument list:

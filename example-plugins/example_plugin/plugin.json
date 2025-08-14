@@ -1,0 +1,5 @@
+{
+  "entry": "test.plugin.TestPlugin",
+  "name": "MyPlugin",
+  "version": "1.0.0"
+}
