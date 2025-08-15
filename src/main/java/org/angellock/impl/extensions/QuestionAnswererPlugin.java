@@ -14,17 +14,17 @@ public class QuestionAnswererPlugin extends AbstractPlugin {
     private long lastAnswerTime = System.currentTimeMillis();
     @Override
     public String getPluginName() {
-        return null;
+        return "QuestionAnswererPlugin";
     }
 
     @Override
     public String getVersion() {
-        return null;
+        return "1.0.0";
     }
 
     @Override
     public String getDescription() {
-        return null;
+        return "auto answerer";
     }
 
     @Override
@@ -41,20 +41,20 @@ public class QuestionAnswererPlugin extends AbstractPlugin {
     public void onEnable(AbstractRobot entityBot) {
 
         getListeners().add(new SystemChatHandler().addExtraAction((packet) -> {
-            String msg = ((TextComponent)packet.getContent()).content();
+            if (!((TextComponent)packet.getContent()).content().isEmpty()) return;
+            TextComponentSerializer textSerializer = new TextComponentSerializer();
+            String msg = textSerializer.serialize(packet.getContent());
 
             if(msg.contains("接下来问一个问题")){
                 this.lastAnswerTime = System.currentTimeMillis();
             }
 
-            if (System.currentTimeMillis() - this.lastAnswerTime < 500L) {
+            if (System.currentTimeMillis() - this.lastAnswerTime < 300L) {
                 QuestionSerializer serializer = new QuestionSerializer(msg, questionManager);
                 serializer.build();
                 if (serializer.isValid()) {
                     getLogger().info(ConsoleTokens.colorizeText("&b{}"), serializer.getAnswer());
                     entityBot.getMessageManager().putMessage(serializer.getAnswer());
-                }else {
-                    getLogger().info(ConsoleTokens.colorizeText("&c The Question Is Not Found. \"{}\""), msg);
                 }
             }
         }));

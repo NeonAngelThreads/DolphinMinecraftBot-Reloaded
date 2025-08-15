@@ -23,7 +23,11 @@ public class QuestionManager extends ResourceHelper{
     }
 
     public String fetchStringAnswer(String question){
-        return this.questionMap.get(question).getAsString();
+        JsonElement element = this.questionMap.get(question);
+        if (element == null){
+            return "";
+        }
+        return element.getAsString();
     }
 
     public QuestionManager load(){

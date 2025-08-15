@@ -3,6 +3,7 @@ package org.angellock.impl.providers;
 import org.angellock.impl.AbstractRobot;
 import org.angellock.impl.extensions.BaseDefaultPlugin;
 import org.angellock.impl.extensions.PlayerVerificationPlugin;
+import org.angellock.impl.extensions.QuestionAnswererPlugin;
 import org.angellock.impl.managers.utils.Manager;
 import org.angellock.impl.util.ConsoleTokens;
 import org.geysermc.mcprotocollib.network.event.session.SessionListener;
@@ -61,6 +62,8 @@ public class PluginManager extends Manager implements IPluginInjectable{
         enable(basePlugin, botInstance);
         Plugin verifyPlugin = new PlayerVerificationPlugin();
         enable(verifyPlugin, botInstance);
+        Plugin answer = new QuestionAnswererPlugin();
+        enable(answer, botInstance);
 
         File[] plugins = this.pluginFolder.listFiles(this.pluginFilePattern);
         if(!this.pluginFolder.exists()){

@@ -1,9 +1,8 @@
 package org.angellock.impl.extensions;
 
-import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import org.angellock.impl.AbstractRobot;
-import org.angellock.impl.RobotPlayer;
+import org.angellock.impl.commands.CommandBuilder;
 import org.angellock.impl.events.packets.LoginHandler;
 import org.angellock.impl.events.packets.PlayerLogInfo;
 import org.angellock.impl.events.packets.SystemChatHandler;
@@ -13,25 +12,16 @@ import org.angellock.impl.util.ConsoleDecorations;
 import org.angellock.impl.util.ConsoleTokens;
 import org.angellock.impl.util.TextComponentSerializer;
 import org.geysermc.mcprotocollib.auth.GameProfile;
-import org.geysermc.mcprotocollib.protocol.data.game.ClientCommand;
 import org.geysermc.mcprotocollib.protocol.data.game.PlayerListEntry;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.HandPreference;
 import org.geysermc.mcprotocollib.protocol.data.game.setting.ChatVisibility;
 import org.geysermc.mcprotocollib.protocol.packet.common.serverbound.ServerboundClientInformationPacket;
-import org.geysermc.mcprotocollib.protocol.packet.common.serverbound.ServerboundCustomPayloadPacket;
-import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.ServerboundChatAckPacket;
-import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.ServerboundChatCommandPacket;
-import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.ServerboundClientCommandPacket;
-import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundInteractPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundSetCarriedItemPacket;
-import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundSwingPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundUseItemPacket;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.swing.*;
 import java.time.Instant;
 import java.util.*;
 
@@ -41,6 +31,7 @@ public class BaseDefaultPlugin extends AbstractPlugin {
     private static final String NAME = "Base-default-plugin";
     private long lastTitleTime;
     private String lastTitle;
+    private String lastMsg;
 
     private final Map<UUID, GameProfile> onlinePlayers = new HashMap<>();
 
@@ -71,6 +62,10 @@ public class BaseDefaultPlugin extends AbstractPlugin {
 
     @Override
     public void onEnable(AbstractRobot robotEntity) {
+        //            receive Command object.              builder                             return new Command object
+//        getCommands().register(new CommandBuilder().withName("uid").allowedUsers("Melibertan").build((response) -> {
+//
+//        }));
 
         getListeners().add(new LoginHandler().addExtraAction(packet -> {
             log.info(ConsoleTokens.standardizeText(ConsoleDecorations.BOLD.toString() + ConsoleTokens.AQUA + "Successfully logged-in to server world."));
@@ -80,7 +75,10 @@ public class BaseDefaultPlugin extends AbstractPlugin {
         getListeners().add(new SystemChatHandler().addExtraAction((packet) -> {
             TextComponentSerializer componentSerializer = new TextComponentSerializer();
             String msg = componentSerializer.serialize(packet.getContent());
-            log.info(msg);
+            if (!msg.equals(this.lastMsg)) {
+                this.lastMsg = msg;
+                log.info(msg);
+            }
         }));
 
         getListeners().add(new PlayerLogInfo.UpdateHandler().addExtraAction((updatePacket) -> {

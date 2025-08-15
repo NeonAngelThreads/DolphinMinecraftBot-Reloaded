@@ -27,7 +27,7 @@ public enum ConsoleTokens implements IComparable<SimpleColor>{
     private final String colorToken;
     private final char colorCode;
     private final SimpleColor hexColor;
-    private static final Pattern foreground_pattern = Pattern.compile("[&§]([0-9a-flNRU])");
+    private static final Pattern foreground_pattern = Pattern.compile("[&§]([0-9a-flonNRU])");
 
     public static String colorizeText(String msg){
         Matcher matcher = foreground_pattern.matcher(msg);
@@ -38,6 +38,11 @@ public enum ConsoleTokens implements IComparable<SimpleColor>{
         }
         matcher.appendTail(result);
         return standardizeText(result.toString());
+    }
+
+    public static String fadeText(String text){
+        Matcher matcher = foreground_pattern.matcher(text);
+        return matcher.replaceAll("");
     }
 
     public static String standardizeText(String text){

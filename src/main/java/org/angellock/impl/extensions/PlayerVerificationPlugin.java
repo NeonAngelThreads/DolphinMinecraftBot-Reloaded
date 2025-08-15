@@ -32,6 +32,7 @@ public class PlayerVerificationPlugin extends AbstractPlugin {
     private Thread autoLoginThread;
     private GameMode serverGamemode = GameMode.ADVENTURE;
     private boolean hasLoggedIn = false;
+    private boolean inQueue = false;
     private AbstractRobot botInstance;
     protected static final Logger log = LoggerFactory.getLogger("AutomaticVerify");
     @Override
@@ -109,7 +110,7 @@ public class PlayerVerificationPlugin extends AbstractPlugin {
             this.autoLoginThread = new Thread(() -> {
                 while (true) {
                     try {
-                        Thread.sleep(1500L);
+                        Thread.sleep((this.inQueue)? 22500L : 1500L);
                         if (!entityBot.getSession().isConnected()){
                             break;
                         }
@@ -125,6 +126,7 @@ public class PlayerVerificationPlugin extends AbstractPlugin {
                                     0,
                                     0
                             ));
+                            this.inQueue = true;
                         }
                     } catch (InterruptedException e) {
                         throw new RuntimeException(e);
@@ -168,20 +170,6 @@ public class PlayerVerificationPlugin extends AbstractPlugin {
                 this.hasLoggedIn = false;
             }
         }));
-
-        getListeners().add((IDisconnectListener) event -> {
-            String reason = event.getReason().toString();
-            try {
-                if (reason.contains("验证")){
-                    resetVerify();
-                } else {
-                    Thread.sleep(0L);
-                }
-                log.info(ConsoleTokens.colorizeText("&aTiming completed."));
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-        });
 
         if (!this.autoLoginThread.isAlive()) {
             this.autoLoginThread.start();

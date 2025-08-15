@@ -1,19 +1,24 @@
 package org.angellock.impl.providers;
 
-import org.angellock.impl.Start;
+import net.kyori.adventure.text.TextComponent;
+import org.angellock.impl.AbstractRobot;
+import org.angellock.impl.commands.Command;
+import org.angellock.impl.commands.CommandResponse;
+import org.angellock.impl.commands.CommandSerializer;
+import org.angellock.impl.commands.CommandSpec;
+import org.angellock.impl.events.packets.SystemChatHandler;
 import org.angellock.impl.managers.utils.Manager;
-import org.geysermc.mcprotocollib.network.Session;
+import org.angellock.impl.util.ConsoleTokens;
 import org.geysermc.mcprotocollib.network.event.session.SessionListener;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-import java.util.ServiceLoader;
 
 public abstract class AbstractPlugin extends Manager implements Plugin {
     private Path dataPath;
@@ -21,7 +26,8 @@ public abstract class AbstractPlugin extends Manager implements Plugin {
     private Manifest manifest;
     private boolean enabled = false;
     private Manifest pluginManifest;
-    private List<SessionListener> listeners = new ArrayList<>();
+    private final List<SessionListener> listeners = new ArrayList<>();
+    private final CommandSpec commands = new CommandSpec();
     private static final Logger log = LoggerFactory.getLogger(AbstractPlugin.class);
     protected Thread schedulerThread;
 
@@ -51,6 +57,30 @@ public abstract class AbstractPlugin extends Manager implements Plugin {
 
     public static Logger getLogger(){
         return log;
+    }
+
+    public CommandSpec getCommands(){
+        return this.commands;
+    }
+
+    public void enable(AbstractRobot robot){
+
+        this.listeners.add(new SystemChatHandler().addExtraAction((chatPacket -> {
+            CommandSerializer serializer = new CommandSerializer();
+            String commandMsg = ((TextComponent)chatPacket.getContent()).content();
+            CommandResponse meta = serializer.serialize(commandMsg);
+            if (meta != null) {
+                log.info("CommandList: {}, sender: {}", Arrays.toString(meta.getCommandList()), meta.getSender());
+                Command cmd = this.commands.getCommand(meta.getCommandList()[0]);
+                if(cmd != null){
+                    cmd.activate(meta);
+                }
+            }else{
+                log.error(ConsoleTokens.colorizeText("&6A player just entered a incorrect command: &7{}"), commandMsg);
+            }
+        })));
+
+        onEnable(robot);
     }
 
     public abstract String getPluginName();

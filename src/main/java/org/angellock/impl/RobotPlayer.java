@@ -25,16 +25,13 @@ public class RobotPlayer extends AbstractRobot {
         log.info(ConsoleTokens.standardizeText(ConsoleTokens.GOLD + "Reason: " + ConsoleTokens.LIGHT_PURPLE + reason));
         if (this.config.getConfigValue("auto-reconnecting").equals("true")){
             log.info(ConsoleTokens.standardizeText(ConsoleTokens.DARK_BLUE + "Trying to reconnect to the server..."));
-            try {
-                if (reason.contains("验证")){
-                    log.info("bypassing");
-                    this.isByPassedVerification = false;
-                } else {
-                    Thread.sleep(0L);
-                }
 
-                log.info(ConsoleTokens.colorizeText("&aTiming completed."));
-            } catch (InterruptedException ignore) {}
+            if (reason.contains("验证")){
+                log.info("bypassing");
+                this.isByPassedVerification = false;
+            }
+
+            log.info(ConsoleTokens.colorizeText("&aTiming completed."));
             if (!super.connectingThread.isAlive()) {
                 super.connect();
             }

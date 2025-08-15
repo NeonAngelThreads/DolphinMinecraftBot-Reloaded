@@ -12,6 +12,8 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -37,7 +39,6 @@ public class Start {
 
         List<?> badOptions = parsedOption.valuesOf(unrecognizedOptions);
         if (!badOptions.isEmpty()){
-            //System.out.println("Omitted arguments " + badOptions);
             log.warn(ConsoleTokens.standardizeText(ConsoleTokens.GOLD + "Omitted option arguments "+ badOptions));
         }
 
@@ -56,8 +57,6 @@ public class Start {
         ConfigManager config = new ConfigManager(parsedOption, defaultConfigPath);
         BotManager botManager = new BotManager(defaultConfigPath, ".json", config).globalPluginManager(parsedOption.valueOf(pluginDir)).loadProfiles(profiles);
         botManager.startAll();
-        //RobotPlayer player = new RobotPlayer(config);
-        //player.connect();
 
     }
 }

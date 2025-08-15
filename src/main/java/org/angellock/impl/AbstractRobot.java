@@ -87,6 +87,11 @@ public abstract class AbstractRobot implements ISendable, SessionProvider, IOpti
         this.serverSession.addListener((IConnectListener) event -> onJoin());
 
         this.serverSession.addListener((IDisconnectListener) event -> {
+            try {
+                Thread.sleep(Long.parseLong((String) this.config.getConfigValue("reconnect-delay")));
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
             Thread.currentThread().interrupt();
             onQuit(event.getReason().toString());
         });
@@ -99,34 +104,11 @@ public abstract class AbstractRobot implements ISendable, SessionProvider, IOpti
 
         while (true) {
             try {
-                Thread.sleep(500L);
+                Thread.sleep(100L);
                 if (!this.serverSession.isConnected()){
                     this.connectDuration = System.currentTimeMillis();
                 }
                 this.messageManager.pollMessage();
-
-//                if (!serverSession.isConnected()){
-//                    this.connectTime = System.currentTimeMillis();
-//                }
-//                else {
-//                    if (!this.isByPassedVerification) {
-//                        if(this.verifyTimes < 3){
-//                            this.verifyTimes++;
-//                            this.serverSession.disconnect(Component.empty());
-//                        }
-//                        log.info(ConsoleTokens.colorizeText("&7正在进行人机验证..."));
-//                        if (System.currentTimeMillis() - this.connectTime > 10700L) {
-//                            log.info(ConsoleTokens.colorizeText("&a机器人验证已完毕."));
-//                            this.pluginManager.loadAllPlugins(this);
-//                            this.isByPassedVerification = true;
-//                            if(this.isVerified()){
-//                                this.sendPacket(new ServerboundChatCommandPacket("reg " + this.getPassword() +" "+ this.getPassword()));
-//                                Thread.sleep(3000L);
-//                                this.serverSession.disconnect(Component.empty());
-//                            }
-//                        }
-//                    }
-//                }
 
                 Thread.onSpinWait();
             }
