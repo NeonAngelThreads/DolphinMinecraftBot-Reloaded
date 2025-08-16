@@ -3,15 +3,17 @@ package org.angellock.impl.managers;
 import com.google.gson.JsonElement;
 import org.angellock.impl.AbstractRobot;
 import org.angellock.impl.RobotPlayer;
+import org.angellock.impl.extensions.Plugins;
+import org.angellock.impl.providers.Plugin;
 import org.angellock.impl.providers.PluginManager;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.ServerboundChatPacket;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+import java.time.Instant;
+import java.util.*;
 
 public class BotManager extends ResourceHelper {
     private static final Logger log = LoggerFactory.getLogger("BotManager");
@@ -61,13 +63,41 @@ public class BotManager extends ResourceHelper {
         Map<String, JsonElement> profile = profiles.get(name).getAsJsonObject().asMap();
         String botName = profile.get("name").getAsString();
         String password = profile.get("password").getAsString();
-        AbstractRobot botInst = new RobotPlayer(this.botConfigHelper, pluginManager).withName(botName).withPassword(password).buildProtocol();
+
+        List<JsonElement> plugins = profile.get("enabled_plugins").getAsJsonArray().asList();
+        List<Plugin> pluginList = new ArrayList<>();
+        for(JsonElement element: plugins){
+            pluginList.add(Plugins.getPluginFromString(element.getAsString()));
+        }
+
+        AbstractRobot botInst = new RobotPlayer(this.botConfigHelper, pluginManager)
+                .withName(botName)
+                .withPassword(password)
+                .withDefaultPlugins(pluginList)
+                .withProfileName(name)
+                .withBotManager(this)
+                .buildProtocol();
         this.bots.put(name, (RobotPlayer) botInst);
     }
 
     private void registerBot(String username, String password, String owner){
         AbstractRobot botInst = new RobotPlayer(this.botConfigHelper, pluginManager).withName(username).withPassword(password).buildProtocol();
         this.bots.put(username, (RobotPlayer) botInst);
+    }
+
+    public void dispatchMessages(List<String> msgQueue){
+        List<RobotPlayer> randomBots = new ArrayList<>(this.bots.values());
+        Collections.shuffle(randomBots);
+        Random random = new Random();
+        for (String string : msgQueue) {
+            if (randomBots.isEmpty()) break;
+            int i = random.nextInt(randomBots.size());
+            RobotPlayer selected = randomBots.remove(i);
+
+            selected.sendPacket(
+                    new ServerboundChatPacket(string, Instant.now().toEpochMilli(), 0L, null, 0, new BitSet())
+            );
+        }
     }
 
     public void startAll(){

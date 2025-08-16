@@ -1,9 +1,25 @@
 {
   "profiles": {
     "bot#1": {
-      "name": "DolphinBot调试",
+      "name": "DolphinBot1",
       "password": "33212abs",
-      "owner": "owner_player_name"
+      "owner": "Melibertan",
+
+      "enabled_plugins": [
+        "QuestionAnswerer",
+        "MessageDisplay",
+        "HumanVerify"
+      ]
+    },
+
+    "bot#2": {
+      "name": "DolphinBot2",
+      "password": "33212abs",
+      "owner": "Melibertan",
+
+      "enabled_plugins": [
+        "HumanVerify"
+      ]
     }
   }
 }

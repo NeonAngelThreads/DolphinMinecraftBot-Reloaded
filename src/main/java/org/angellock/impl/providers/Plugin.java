@@ -19,5 +19,5 @@ public interface Plugin {
 
     void onLoad();
 
-    void onEnable(final AbstractRobot entityBot);
+    void enable(final AbstractRobot entityBot);
 }

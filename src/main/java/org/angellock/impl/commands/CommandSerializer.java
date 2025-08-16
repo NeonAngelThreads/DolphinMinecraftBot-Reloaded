@@ -33,13 +33,16 @@ public class CommandSerializer implements Serializable {
         }
         commandSender = matcher.group(1);
 
-        msg = matcher.replaceAll("").strip();
+        msg = matcher.replaceAll("").trim().strip();
         msg = ConsoleTokens.fadeText(msg);
         if(msg.indexOf(target) > 3){
             return null;
         }
         msg = msg.substring(msg.indexOf(target) + 1);
         String[] commands = msg.split(" ");
+        for (int o = 0; o < commands.length; o++) {
+            commands[o] = commands[o].trim();
+        }
 
         return new CommandResponse(commands, commandSender);
     }

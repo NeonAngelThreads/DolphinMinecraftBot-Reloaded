@@ -9,6 +9,8 @@ import org.angellock.impl.commands.CommandSpec;
 import org.angellock.impl.events.packets.SystemChatHandler;
 import org.angellock.impl.managers.utils.Manager;
 import org.angellock.impl.util.ConsoleTokens;
+import org.angellock.impl.util.PlainTextSerializer;
+import org.angellock.impl.util.TextComponentSerializer;
 import org.geysermc.mcprotocollib.network.event.session.SessionListener;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -67,7 +69,8 @@ public abstract class AbstractPlugin extends Manager implements Plugin {
 
         this.listeners.add(new SystemChatHandler().addExtraAction((chatPacket -> {
             CommandSerializer serializer = new CommandSerializer();
-            String commandMsg = ((TextComponent)chatPacket.getContent()).content();
+            PlainTextSerializer componentSerializer = new PlainTextSerializer();
+            String commandMsg = componentSerializer.serialize(chatPacket.getContent());
             CommandResponse meta = serializer.serialize(commandMsg);
             if (meta != null) {
                 log.info("CommandList: {}, sender: {}", Arrays.toString(meta.getCommandList()), meta.getSender());
@@ -75,13 +78,12 @@ public abstract class AbstractPlugin extends Manager implements Plugin {
                 if(cmd != null){
                     cmd.activate(meta);
                 }
-            }else{
-                log.error(ConsoleTokens.colorizeText("&6A player just entered a incorrect command: &7{}"), commandMsg);
             }
         })));
 
         onEnable(robot);
     }
+    public abstract void onEnable(final AbstractRobot entityBot);
 
     public abstract String getPluginName();
     @Override

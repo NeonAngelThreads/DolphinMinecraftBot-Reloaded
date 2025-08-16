@@ -58,20 +58,24 @@ public class PluginManager extends Manager implements IPluginInjectable{
     }
 
     public void loadAllPlugins(AbstractRobot botInstance){
-        Plugin basePlugin = new BaseDefaultPlugin();
-        enable(basePlugin, botInstance);
-        Plugin verifyPlugin = new PlayerVerificationPlugin();
-        enable(verifyPlugin, botInstance);
-        Plugin answer = new QuestionAnswererPlugin();
-        enable(answer, botInstance);
+        for (Plugin aDefault : botInstance.enabled_base_plugin) {
+            enable(aDefault, botInstance);
+        }
 
         File[] plugins = this.pluginFolder.listFiles(this.pluginFilePattern);
+        File subDir = new File(this.pluginFolder, botInstance.getProfileName());
         if(!this.pluginFolder.exists()){
             boolean successful = this.pluginFolder.mkdir();
             if (!successful){
                 log.error(ConsoleTokens.colorizeText("&4Failed to create the plugin folder."));
             }else {
                 log.info(ConsoleTokens.colorizeText("&7Successfully created new plugin folder."));
+            }
+        }
+        if (!subDir.exists()){
+            boolean successful2 = subDir.mkdir();
+            if(successful2){
+                log.info(ConsoleTokens.colorizeText("&7Created individual bot plugin folder."));
             }
         }
         if(plugins == null){
@@ -81,6 +85,16 @@ public class PluginManager extends Manager implements IPluginInjectable{
         for (File plugin: plugins){
             this.loadPlugin(botInstance, plugin);
         }
+
+        File[] individualPlugins = subDir.listFiles(this.pluginFilePattern);
+        if(individualPlugins == null){
+            log.error(ConsoleTokens.colorizeText("&6The plugin folder was invalid or not found by removed, plugins will not be loaded."));
+            return;
+        }
+        for (File InnerPlugin: individualPlugins){
+            this.loadPlugin(botInstance, InnerPlugin);
+        }
+
     }
     public void disableAllPlugins(AbstractRobot botInstance){
         botInstance.getSession().getListeners().clear();
@@ -106,7 +120,7 @@ public class PluginManager extends Manager implements IPluginInjectable{
         if (!plugin.isEnabled()){
             plugin.setEnabled(true);
             this.registerPlugin(plugin);
-            plugin.onEnable(provider);
+            plugin.enable(provider);
 
             List<SessionListener> listeners = plugin.getListeners();
             log.info(ConsoleTokens.colorizeText("&7[&bEventBus&7] &eRegistering Listener From Plugin &6{}"), plugin.getName());

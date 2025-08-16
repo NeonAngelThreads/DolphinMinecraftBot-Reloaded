@@ -3,7 +3,9 @@ package org.angellock.impl;
 
 import org.angellock.impl.events.IConnectListener;
 import org.angellock.impl.events.IDisconnectListener;
+import org.angellock.impl.managers.BotManager;
 import org.angellock.impl.managers.ConfigManager;
+import org.angellock.impl.providers.Plugin;
 import org.angellock.impl.providers.PluginManager;
 import org.angellock.impl.providers.SessionProvider;
 import org.angellock.impl.util.ConsoleTokens;
@@ -14,9 +16,7 @@ import org.geysermc.mcprotocollib.protocol.codec.MinecraftPacket;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayDeque;
-import java.util.Queue;
-import java.util.Random;
+import java.util.*;
 
 public abstract class AbstractRobot implements ISendable, SessionProvider, IOptionalProcedures {
     protected Session serverSession;
@@ -25,6 +25,7 @@ public abstract class AbstractRobot implements ISendable, SessionProvider, IOpti
     protected String server;
     protected short port;
     protected String name;
+    private String profileName;
     protected String password;
     protected static final Logger log = LoggerFactory.getLogger(ConsoleTokens.colorizeText("&aDolphinBot"));
     protected final int TIME_OUT;
@@ -35,6 +36,8 @@ public abstract class AbstractRobot implements ISendable, SessionProvider, IOpti
     protected long connectDuration = 0;
     protected boolean isByPassedVerification = true;
     private ChatMessageManager messageManager;
+    private BotManager botManager;
+    public Collection<Plugin> enabled_base_plugin = new ArrayList<>();
 
     public AbstractRobot(ConfigManager configManager, PluginManager pluginManager){
         this.config = configManager;
@@ -65,10 +68,21 @@ public abstract class AbstractRobot implements ISendable, SessionProvider, IOpti
         this.password = password;
         return this;
     }
-
+    public AbstractRobot withDefaultPlugins(List<Plugin> plugins){
+        this.enabled_base_plugin = plugins;
+        return this;
+    }
+    public AbstractRobot withBotManager(BotManager botManager){
+        this.botManager = botManager;
+        return this;
+    }
     public AbstractRobot buildProtocol(){
         this.minecraftProtocol = new MinecraftProtocol(this.name);
         return this;
+    }
+
+    public BotManager getBotManager() {
+        return botManager;
     }
 
     public String getPassword(){
@@ -146,5 +160,14 @@ public abstract class AbstractRobot implements ISendable, SessionProvider, IOpti
 
     public boolean isByPassedVerification() {
         return isByPassedVerification;
+    }
+
+    public String getProfileName() {
+        return (this.profileName != null) ? this.profileName: this.name;
+    }
+
+    public AbstractRobot withProfileName(String name) {
+        this.profileName = name;
+        return this;
     }
 }
