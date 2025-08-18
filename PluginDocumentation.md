@@ -87,10 +87,11 @@ In this section, you will learn:
   - You can also refer to the example plugin in folder `/example-plugin/example_plugin` for help, or you can base on this demo plugin as your template to develop your own plugin.  
   - After you package your plugin, put the packaged plugin in folder `/plugins`.  
 
-  **1. Deep Understand DolphinAPIs:**  
-    In above plugin code, at `onEnable()` method, we used `getListeners()` method to get the collection of packet listeners in this plugin.  
+## 3. Deep Understand DolphinAPIs:  
+- ### 1. Listeners and PacketEvents:  
+- In above plugin code, at `onEnable()` method, we used `getListeners()` method to get the collection of packet listeners in this plugin.  
     
-   ```java
+   ````java
     @Override
     public void onEnable(AbstractRobot entityBot) {
         getListeners().add(
@@ -99,7 +100,7 @@ In this section, you will learn:
                 })
         );
     }
-   ```
+   ````
    Above code implements an informant that will print current gamemode info once the bot join to or be redirected to a server.  
    **Code Explanation:**  
    `getListeners()` returns an iterable list of `AbstractEventProcessor`, allows you to use `add()` to register various packet handlers.  
@@ -118,7 +119,7 @@ In this section, you will learn:
     public class MyHandler extends AbstractEventProcessor<ClientboundPlayerChatPacket> { // specifying target packet type.
         @Override
         protected boolean isTargetPacket(MinecraftPacket packet) {
-            return (packet instanceof ClientboundPlayerChatPacket); // filtering other packet type.
+            return (packet instanceof ClientboundPlayerChatPacket); // filtering out other packet type.
         }
     }
 
@@ -137,7 +138,54 @@ In this section, you will learn:
         );
     }
    ````
-## 3. How a Plugin Works
+
+- ### 2. Commands System:
+- Command system implements an advanced and easy-used CommandAPI, it encapsulates varied base classes
+  including `CommandSerializer`, `CommandBuilder` and so on, allowing you to register custom commands on your plugin
+  with several simple codes.  
+    DolphinCommandAPI adopts `!` or `！` (namely English exclamation & Chinese exclamation) character as prefix of command for
+  in-game command executing.  
+    To register a custom command, you need to use `getCommands().register(Command)`.  
+    And `.register()` method receives a `Command` object
+  instance, a `Command` instance should be constructed by the `CommandBuilder`:
+    ```java
+  Command command = new CommandBuilder().withName('commandName').build((response) -> {});
+  ```
+  `CommandBuilder` has multiple optional chaining methods other from `.withName()`, including:
+    - `.withName(String)`: Specify command name for executing.
+    - `.allowedUsers(String...users)`: Specify only who can use this command, absent for allowing all players by default.  
+    - `.build()`: At the end, call `.build()` to construct command. It returns a `Command` object.  
+    For example, if you want to register a command that could be triggered by chat message `!test`, only for player `PlayerName` uses, 
+    and prints sub-commands you passed, the code looks like this:
+  ```java
+    @Override
+    public void onEnable(AbstractRobot abstractRobot) {
+        getCommands().register(new CommandBuilder().withName("test").allowedUsers("PlayerName").build((response) -> {
+            String[] subCommand = response.getCommandList(); // get command list contains main-command and sub-command.
+            
+            getLogger().info(Arrays.toString(subCommand));
+        }));
+     }
+  ```
+  The `response` parameter inside the lambda expression is an object of `CommandResponse`, it wrapped command meta-infos and call-infos, including sub-command list,
+  and command sender.  
+    **An Example of getting command-sender and command list:**
+    ```java
+     @Override
+     public void onEnable(AbstractRobot abstractRobot) {
+        getCommands().register(new CommandBuilder().withName("uid").allowedUsers("Melibertan").build((response) -> {
+            String[] subCommand = response.getCommandList(); // get command list contains main-command and sub-command.
+            String commandSender = response.getSender(); // get player who have sent this command.
+        }));
+     }
+    ```
+    For each plugin has individual command system, and every command system is base on `SystemChatPacket` and `PlayerChatPacket` listening.  
+    The command sender and command list is serialized by `CommandSerializer`.
+- ### 3. Message Manager:
+    In-game chat messages sends is managed by `MessageManager`.  
+    For each bot individual has a message manager. 
+    
+## 4. How a Plugin Works
   1. **Base Plugin Events**:  
    Every single plugin exists in form of a jar file managed by `PluginManager`. The `PluginManager` is used to enable
    and register plugins or disable them.  

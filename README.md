@@ -11,6 +11,7 @@ A lightweight, reliable, intelligent MC bot for general minecraft server, with h
    - **Easy to use**, directly run, you can put the bot profile(s) into config file instead of defining on command-line, fast start.
 ### **Shortcuts**: [Custom plugin developing guideline](PluginDocumentation.md)
 ## Features:
+   - Easy to register custom commands starting with `!` by using CommandBuilder DolphinAPIs
    - Bypassing human verification in most servers including `2b2t.xin`.
    - Supporting to configure the bot clusters, and start at once.
    - Supporting colourful console logging strings expression `colorizeText("&6Hello &lWorld")`.
@@ -74,17 +75,28 @@ In this section, you will understand below how-tos:
                   "bot#1": {
                      "name": "Player494",
                      "password": "123example",
-                     "owner": "player_name"
+                     "owner": "player_name",
+         
+                     "enabled_plugins": [
+                        "QuestionAnswerer",
+                        "MessageDisplay",
+                        "HumanVerify"
+                     ]
                   },
                   "bot#2": {
-                     "name": "Player495",
+                     "name": "Player495",  
                      "password": "password",
-                     "owner": "player_name"
+                     "owner": "player_name",
+         
+                     "enabled_plugins": [
+                        "HumanVerify"
+                     ]
                   },
                   "bot#3": {"...": "..."}
                }
             }
             ```
+            where `enabled_plugins` key represents which plugins should enable on the bot.
             In this case, if you want to load `bot#1` as your single bot, you should add below argument:  
             ```bash
             java -jar "DolphinBot-[version].jar" -config-file=path/to/config_directory -profiles="bot#1"
