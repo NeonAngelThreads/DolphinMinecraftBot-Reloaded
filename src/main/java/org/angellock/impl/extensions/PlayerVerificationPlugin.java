@@ -11,6 +11,7 @@ import org.angellock.impl.events.packets.TitlePacketHandler;
 import org.angellock.impl.providers.AbstractPlugin;
 import org.angellock.impl.util.ConsoleTokens;
 import org.angellock.impl.util.TextComponentSerializer;
+import org.angellock.impl.util.TimingUtil;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerAction;
@@ -30,24 +31,23 @@ import java.util.HashMap;
 public class PlayerVerificationPlugin extends AbstractPlugin {
     protected int verifyTimes = 0;
     private Thread autoLoginThread;
-    private GameMode serverGamemode = GameMode.ADVENTURE;
     private boolean hasLoggedIn = false;
     private boolean inQueue = false;
     private AbstractRobot botInstance;
     protected static final Logger log = LoggerFactory.getLogger("AutomaticVerify");
     @Override
     public String getPluginName() {
-        return "null";
+        return "AutomaticVerify";
     }
 
     @Override
     public String getVersion() {
-        return "null";
+        return "1.0.0";
     }
 
     @Override
     public String getDescription() {
-        return "null";
+        return "AutomaticVerify";
     }
 
     @Override
@@ -69,11 +69,8 @@ public class PlayerVerificationPlugin extends AbstractPlugin {
                 int var = 0;
                 while (true) {
                     try {
-                        int i;
-                        do {
-                            i = entityBot.getRandomizer().nextInt(1000)%8;
-                        } while (Math.abs(var - i) < 1);
-                        var = i;
+
+                        var = TimingUtil.getRandomDelay(entityBot.getRandomizer(), var);
                         Thread.sleep(500L*(1+var));
 
                         if (entityBot.getSession().isConnected()){
@@ -110,7 +107,7 @@ public class PlayerVerificationPlugin extends AbstractPlugin {
             this.autoLoginThread = new Thread(() -> {
                 while (true) {
                     try {
-                        Thread.sleep((this.inQueue)? 22500L : 1500L);
+                        Thread.sleep((this.inQueue)? 6500L : 1500L);
                         if (!entityBot.getSession().isConnected()){
                             break;
                         }
@@ -118,7 +115,7 @@ public class PlayerVerificationPlugin extends AbstractPlugin {
                         //log.info(this.serverGamemode.name());
                         if (!this.hasLoggedIn) {
                             entityBot.sendPacket(new ServerboundChatCommandPacket("login " + entityBot.getPassword()));
-                        }else if (this.serverGamemode != GameMode.SURVIVAL){
+                        }else if (this.botInstance.getServerGamemode() != GameMode.SURVIVAL){
                             entityBot.sendPacket(new ServerboundSetCarriedItemPacket(2));
                             entityBot.sendPacket(new ServerboundUseItemPacket(
                                     Hand.MAIN_HAND,
@@ -157,7 +154,7 @@ public class PlayerVerificationPlugin extends AbstractPlugin {
 
         getListeners().add(
                 new LoginHandler().addExtraAction((loginPacket) -> {
-                    this.serverGamemode = loginPacket.getCommonPlayerSpawnInfo().getGameMode();
+                    entityBot.setServerGamemode(loginPacket.getCommonPlayerSpawnInfo().getGameMode());
                     getLogger().info(loginPacket.getCommonPlayerSpawnInfo().getGameMode().name());
                 })
         );

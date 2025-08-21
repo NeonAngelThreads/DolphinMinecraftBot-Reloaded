@@ -67,21 +67,23 @@ public abstract class AbstractPlugin extends Manager implements Plugin {
 
     public void enable(AbstractRobot robot){
 
-        this.listeners.add(new SystemChatHandler().addExtraAction((chatPacket -> {
-            CommandSerializer serializer = new CommandSerializer();
-            PlainTextSerializer componentSerializer = new PlainTextSerializer();
-            String commandMsg = componentSerializer.serialize(chatPacket.getContent());
-            CommandResponse meta = serializer.serialize(commandMsg);
-            if (meta != null) {
-                log.info("CommandList: {}, sender: {}", Arrays.toString(meta.getCommandList()), meta.getSender());
-                Command cmd = this.commands.getCommand(meta.getCommandList()[0]);
-                if(cmd != null){
-                    cmd.activate(meta);
+        if (this.listeners.isEmpty()) {
+            this.listeners.add(new SystemChatHandler().addExtraAction((chatPacket -> {
+                CommandSerializer serializer = new CommandSerializer();
+                PlainTextSerializer componentSerializer = new PlainTextSerializer();
+                String commandMsg = componentSerializer.serialize(chatPacket.getContent());
+                CommandResponse meta = serializer.serialize(commandMsg);
+                if (meta != null) {
+                    log.info("CommandList: {}, sender: {}", Arrays.toString(meta.getCommandList()), meta.getSender());
+                    Command cmd = this.commands.getCommand(meta.getCommandList()[0]);
+                    if(cmd != null){
+                        cmd.activate(meta);
+                    }
                 }
-            }
-        })));
+            })));
 
-        onEnable(robot);
+            onEnable(robot);
+        }
     }
     public abstract void onEnable(final AbstractRobot entityBot);
 

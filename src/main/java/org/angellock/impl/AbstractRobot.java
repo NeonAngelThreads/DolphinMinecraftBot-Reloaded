@@ -13,10 +13,25 @@ import org.geysermc.mcprotocollib.network.Session;
 import org.geysermc.mcprotocollib.network.tcp.TcpClientSession;
 import org.geysermc.mcprotocollib.protocol.MinecraftProtocol;
 import org.geysermc.mcprotocollib.protocol.codec.MinecraftPacket;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.player.PlayerAction;
+import org.geysermc.mcprotocollib.protocol.data.status.ServerStatusInfo;
+import org.geysermc.mcprotocollib.protocol.packet.common.serverbound.ServerboundClientInformationPacket;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundRespawnPacket;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundTickingStatePacket;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundPlayerAbilitiesPacket;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundPlayerActionPacket;
+import org.geysermc.mcprotocollib.protocol.packet.login.serverbound.ServerboundKeyPacket;
+import org.geysermc.mcprotocollib.protocol.packet.status.clientbound.ClientboundStatusResponsePacket;
+import org.geysermc.mcprotocollib.protocol.packet.status.serverbound.ServerboundStatusRequestPacket;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public abstract class AbstractRobot implements ISendable, SessionProvider, IOptionalProcedures {
     protected Session serverSession;
@@ -30,13 +45,14 @@ public abstract class AbstractRobot implements ISendable, SessionProvider, IOpti
     protected static final Logger log = LoggerFactory.getLogger(ConsoleTokens.colorizeText("&aDolphinBot"));
     protected final int TIME_OUT;
     protected final int ReconnectionDelay;
-    protected Thread connectingThread;
     private final PluginManager pluginManager;
     protected final Random randomizer = new Random();
     protected long connectDuration = 0;
     protected boolean isByPassedVerification = true;
     private ChatMessageManager messageManager;
     private BotManager botManager;
+    private GameMode serverGamemode = GameMode.ADVENTURE;
+    private ScheduledExecutorService reconnectScheduler = Executors.newScheduledThreadPool(1);
     public Collection<Plugin> enabled_base_plugin = new ArrayList<>();
 
     public AbstractRobot(ConfigManager configManager, PluginManager pluginManager){
@@ -54,8 +70,6 @@ public abstract class AbstractRobot implements ISendable, SessionProvider, IOpti
         this.port = serverPort;
         this.TIME_OUT = Integer.parseInt((String) this.config.getConfigValue("connect-timing-out"));
         this.ReconnectionDelay = Integer.parseInt((String) this.config.getConfigValue("reconnect-delay"));
-
-        this.connectingThread = new Thread(this::connect);
 
     }
 
@@ -96,41 +110,51 @@ public abstract class AbstractRobot implements ISendable, SessionProvider, IOpti
     public void connect(){
         onPreLogin();
         this.serverSession = new TcpClientSession(this.server, this.port, minecraftProtocol);
+
         this.messageManager = new ChatMessageManager(this.serverSession);
 
         this.serverSession.addListener((IConnectListener) event -> onJoin());
 
         this.serverSession.addListener((IDisconnectListener) event -> {
-            try {
-                Thread.sleep(Long.parseLong((String) this.config.getConfigValue("reconnect-delay")));
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-            Thread.currentThread().interrupt();
             onQuit(event.getReason().toString());
         });
-        this.serverSession.connect();
+        this.serverSession.connect(true);
         this.connectDuration = System.currentTimeMillis();
 
         if (this.isByPassedVerification) {
-            this.getPluginManager().loadAllPlugins(this);
+            //this.pluginManager.disableAllPlugins(this);
+            this.pluginManager.loadAllPlugins(this);
         }
 
-        while (true) {
-            try {
-                Thread.sleep(100L);
-                if (!this.serverSession.isConnected()){
-                    this.connectDuration = System.currentTimeMillis();
+        try {
+            while (true) {
+                try {
+                    Thread.sleep(100L);
+                    if (!this.serverSession.isConnected()){
+                        this.connectDuration = System.currentTimeMillis();
+                        break;
+                    }
+                    this.messageManager.pollMessage();
+
+                    //Thread.onSpinWait();
                 }
-                this.messageManager.pollMessage();
-
-                Thread.onSpinWait();
+                catch (InterruptedException e){
+                    this.serverSession.disconnect("Interrupted");
+                    throw new RuntimeException(e);
+                }
             }
-            catch (InterruptedException e){
-                this.serverSession.disconnect("Interrupted");
-                throw new RuntimeException();
-            }
+        } finally {
+            scheduleReconnect();
         }
+    }
+
+    public void scheduleReconnect() {
+        try {
+            Thread.sleep(Long.parseLong((String) this.config.getConfigValue("reconnect-delay")));
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        this.reconnectScheduler.schedule(() -> this.connect(), 5, TimeUnit.SECONDS);
     }
 
     public void setBypassed(boolean bypassed) {
@@ -169,5 +193,13 @@ public abstract class AbstractRobot implements ISendable, SessionProvider, IOpti
     public AbstractRobot withProfileName(String name) {
         this.profileName = name;
         return this;
+    }
+
+    public GameMode getServerGamemode() {
+        return serverGamemode;
+    }
+
+    public void setServerGamemode(GameMode serverGamemode) {
+        this.serverGamemode = serverGamemode;
     }
 }

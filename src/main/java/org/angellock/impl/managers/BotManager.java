@@ -3,9 +3,13 @@ package org.angellock.impl.managers;
 import com.google.gson.JsonElement;
 import org.angellock.impl.AbstractRobot;
 import org.angellock.impl.RobotPlayer;
+import org.angellock.impl.extensions.BaseDefaultPlugin;
+import org.angellock.impl.extensions.PlayerVerificationPlugin;
 import org.angellock.impl.extensions.Plugins;
+import org.angellock.impl.extensions.QuestionAnswererPlugin;
 import org.angellock.impl.providers.Plugin;
 import org.angellock.impl.providers.PluginManager;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.ServerboundChatPacket;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -19,6 +23,7 @@ public class BotManager extends ResourceHelper {
     private static final Logger log = LoggerFactory.getLogger("BotManager");
     private final Map<String, RobotPlayer> bots = new HashMap<>();
     private final ArrayList<Thread> botSessions = new ArrayList<>();
+    private final Queue<RobotPlayer> disconnectedBots = new ArrayDeque<>();
     private final ConfigManager botConfigHelper;
     private PluginManager pluginManager;
     public BotManager(@Nullable String defaultPath, String fileType, ConfigManager botConfigHelper) {
@@ -82,6 +87,7 @@ public class BotManager extends ResourceHelper {
 
     private void registerBot(String username, String password, String owner){
         AbstractRobot botInst = new RobotPlayer(this.botConfigHelper, pluginManager).withName(username).withPassword(password).buildProtocol();
+        botInst.enabled_base_plugin.addAll(Arrays.asList(new PlayerVerificationPlugin(), new BaseDefaultPlugin(), new QuestionAnswererPlugin()));
         this.bots.put(username, (RobotPlayer) botInst);
     }
 
@@ -89,27 +95,40 @@ public class BotManager extends ResourceHelper {
         List<RobotPlayer> randomBots = new ArrayList<>(this.bots.values());
         Collections.shuffle(randomBots);
         Random random = new Random();
+        RobotPlayer last = null;
         for (String string : msgQueue) {
             if (randomBots.isEmpty()) break;
             int i = random.nextInt(randomBots.size());
             RobotPlayer selected = randomBots.remove(i);
 
-            selected.sendPacket(
-                    new ServerboundChatPacket(string, Instant.now().toEpochMilli(), 0L, null, 0, new BitSet())
-            );
+            if (last != null) {
+                try {
+                    Thread.sleep(70L);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            selected.getMessageManager().putMessage(string);
+            last = selected;
         }
     }
 
     public void startAll(){
         for (RobotPlayer bot: this.bots.values()){
-            Thread botThread = new Thread(bot::connect);
+            Thread botThread = new Thread(()->bot.connect());
             botSessions.add(botThread);
-        }
 
-        for (Thread thread: this.botSessions){
-            thread.start();
+            botThread.start();
+            while (bot.getServerGamemode() == GameMode.ADVENTURE){
+                try {
+                    Thread.sleep(5000L);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            }
         }
     }
+
     @Override
     public String getFileName() {
         return "bot.profiles";

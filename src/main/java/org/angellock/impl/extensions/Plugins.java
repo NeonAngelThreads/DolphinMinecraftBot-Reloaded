@@ -2,21 +2,28 @@ package org.angellock.impl.extensions;
 
 import org.angellock.impl.providers.Plugin;
 
+import java.lang.reflect.InvocationTargetException;
+
 public enum Plugins {
-    QUEUE_PLUGIN("QuestionAnswerer", new QuestionAnswererPlugin()),
-    BASE_PLUGIN("MessageDisplay", new BaseDefaultPlugin()),
-    VERIFY_PLUGIN("HumanVerify", new PlayerVerificationPlugin());
+    QUEUE_PLUGIN("QuestionAnswerer", QuestionAnswererPlugin.class),
+    BASE_PLUGIN("MessageDisplay", BaseDefaultPlugin.class),
+    VERIFY_PLUGIN("HumanVerify", PlayerVerificationPlugin.class);
 
     private final String pluginName;
-    private final Plugin pluginInstance;
+    private final Class<?> pluginInstance;
 
-    Plugins(String pluginName, Plugin pluginInstance) {
+    Plugins(String pluginName, Class<?> pluginType) {
         this.pluginName = pluginName;
-        this.pluginInstance = pluginInstance;
+
+        this.pluginInstance = pluginType;
     }
 
     public Plugin getPlugin(){
-        return this.pluginInstance;
+        try {
+            return (Plugin) this.pluginInstance.getConstructor().newInstance();
+        } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+            return null;
+        }
     }
 
     public static Plugin getPluginFromString(String pluginName){

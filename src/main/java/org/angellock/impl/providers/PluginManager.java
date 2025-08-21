@@ -58,6 +58,12 @@ public class PluginManager extends Manager implements IPluginInjectable{
     }
 
     public void loadAllPlugins(AbstractRobot botInstance){
+        if(!this.registeredPlugins.isEmpty()){
+            for (Plugin plugin: this.registeredPlugins.values()){
+                enable(plugin, botInstance);
+            }
+            return;
+        }
         for (Plugin aDefault : botInstance.enabled_base_plugin) {
             enable(aDefault, botInstance);
         }
@@ -97,11 +103,9 @@ public class PluginManager extends Manager implements IPluginInjectable{
 
     }
     public void disableAllPlugins(AbstractRobot botInstance){
-        botInstance.getSession().getListeners().clear();
-        for (Plugin plugin : this.registeredPlugins.values()){
-            plugin.onDisable();
+        for (String plugin : this.registeredPlugins.keySet()){
+            this.disable(botInstance, plugin);
         }
-        this.registeredPlugins.clear();
     }
     @Override
     public void disable(AbstractRobot botInstance, String pluginName){
@@ -109,10 +113,11 @@ public class PluginManager extends Manager implements IPluginInjectable{
         List<SessionListener> pluginListeners = target.getListeners();
 
         for (SessionListener listener : pluginListeners) {
+            log.info(ConsoleTokens.colorizeText("&7[&bEventBus&7] &7Removing Action Object &l{}"), listener.toString());
             botInstance.getSession().removeListener(listener);
         }
         target.onDisable();
-        this.registeredPlugins.remove(pluginName);
+        target.setEnabled(false);
     }
     @Override
     public void enable(Plugin plugin, AbstractRobot provider){
@@ -126,8 +131,10 @@ public class PluginManager extends Manager implements IPluginInjectable{
             log.info(ConsoleTokens.colorizeText("&7[&bEventBus&7] &eRegistering Listener From Plugin &6{}"), plugin.getName());
 
             for (SessionListener listener : listeners) {
-                log.info(ConsoleTokens.colorizeText("&7[&bEventBus&7] &6Injecting Action Object &7&l{}"), listener.toString());
-                provider.getSession().addListener(listener);
+                if (!provider.getSession().getListeners().contains(listener)) {
+                    log.info(ConsoleTokens.colorizeText("&7[&bEventBus&7] &6Injecting Action Object &7&l{}"), listener.toString());
+                    provider.getSession().addListener(listener);
+                }
 
             }
         }
