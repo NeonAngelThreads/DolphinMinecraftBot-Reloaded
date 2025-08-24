@@ -87,7 +87,9 @@ public class BotManager extends ResourceHelper {
 
     private void registerBot(String username, String password, String owner){
         AbstractRobot botInst = new RobotPlayer(this.botConfigHelper, pluginManager).withName(username).withPassword(password).buildProtocol();
-        botInst.enabled_base_plugin.addAll(Arrays.asList(new PlayerVerificationPlugin(), new BaseDefaultPlugin(), new QuestionAnswererPlugin()));
+        for (Plugins plugins: Plugins.values()){
+            botInst.getPluginManager().getDefaultPlugins().add(plugins.getPlugin());
+        }
         this.bots.put(username, (RobotPlayer) botInst);
     }
 

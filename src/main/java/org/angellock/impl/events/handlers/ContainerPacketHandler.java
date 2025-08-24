@@ -1,6 +1,7 @@
-package org.angellock.impl.events.packets;
+package org.angellock.impl.events.handlers;
 
 import org.angellock.impl.events.AbstractEventProcessor;
+import org.geysermc.mcprotocollib.network.packet.Packet;
 import org.geysermc.mcprotocollib.protocol.codec.MinecraftPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundPlayerChatPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.inventory.ClientboundContainerSetContentPacket;
@@ -9,7 +10,7 @@ import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.inventory.C
 
 public class ContainerPacketHandler extends AbstractEventProcessor<ClientboundOpenScreenPacket> {
     @Override
-    protected boolean isTargetPacket(MinecraftPacket packet) {
+    protected boolean isTargetPacket(Packet packet) {
         return (packet instanceof ClientboundOpenScreenPacket);
     }
 }

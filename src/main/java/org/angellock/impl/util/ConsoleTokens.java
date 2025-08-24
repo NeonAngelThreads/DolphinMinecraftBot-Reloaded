@@ -1,6 +1,8 @@
 package org.angellock.impl.util;
 
+import org.angellock.impl.Start;
 import org.angellock.impl.util.colorutil.SimpleColor;
+import org.angellock.impl.util.win32terminal.Win32ColorSerializer;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -30,14 +32,18 @@ public enum ConsoleTokens implements IComparable<SimpleColor>{
     private static final Pattern foreground_pattern = Pattern.compile("[&§]([0-9a-flonNRU])");
 
     public static String colorizeText(String msg){
-        Matcher matcher = foreground_pattern.matcher(msg);
-        StringBuilder result = new StringBuilder();
-        while (matcher.find()) {
-            char code = matcher.group(1).charAt(0);
-            matcher.appendReplacement(result, parseColorFormCode(code));
+        if (Start.isWindows()) {
+            return Win32ColorSerializer.serialize(msg);
+        }else {
+            Matcher matcher = foreground_pattern.matcher(msg);
+            StringBuilder result = new StringBuilder();
+            while (matcher.find()) {
+                char code = matcher.group(1).charAt(0);
+                matcher.appendReplacement(result, parseColorFormCode(code).toString());
+            }
+            matcher.appendTail(result);
+            return standardizeText(result.toString());
         }
-        matcher.appendTail(result);
-        return standardizeText(result.toString());
     }
 
     public static String fadeText(String text){
@@ -63,18 +69,21 @@ public enum ConsoleTokens implements IComparable<SimpleColor>{
         return colorCode;
     }
 
-    public static String parseColorFormCode(char code){
-        if (code == 'l'){
-            return ConsoleDecorations.BOLD.toString();
-        }else if(code == 'o'){
-            return ConsoleDecorations.ITALIC.toString();
-        }
+    public static ConsoleTokens parseColorFormCode(char code){
         for (ConsoleTokens instance: values()){
             if (instance.colorCode == Character.toUpperCase(code)){
-                return instance.toString();
+                return instance;
             }
         }
-        return ConsoleTokens.NONE.toString(); // return the default colour
+        return ConsoleTokens.NONE; // return the default colour
+    }
+    public static String getColorName(char code){
+        if (code == 'l'){
+            return ConsoleDecorations.BOLD.name();
+        }else if(code == 'o'){
+            return ConsoleDecorations.ITALIC.name();
+        }
+        return parseColorFormCode(code).name();
     }
 
     public SimpleColor getHexColor(){

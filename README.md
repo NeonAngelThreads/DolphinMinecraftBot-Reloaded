@@ -11,14 +11,15 @@
   </a>
    <br>
    <a href="https://github.com/NeonAngelThreads/DolphinBot/commits/master/">
-      <img src="https://img.shields.io/github/last-commit/NeonAngelThreads/DolphinBot" alt="Release"/>
+      <img src="https://img.shields.io/github/last-commit/NeonAngelThreads/DolphinBot" alt="commits"/>
    </a>
   <img src="https://img.shields.io/github/commit-activity/w/NeonAngelThreads/DolphinBot" alt="GitHub commit activity"/>
-  <a href="https://github.com/NeonAngelThreads/DolphinBot/releases">
-    <img src="https://img.shields.io/github/issues/NeonAngelThreads/DolphinBot" alt="Release"/>
+  <a href="https://github.com/NeonAngelThreads/DolphinBot/issues">
+    <img src="https://img.shields.io/github/issues/NeonAngelThreads/DolphinBot" alt="issues"/>
   </a>
-  <img src="https://img.shields.io/github/languages/code-size/NeonAngelThreads/DolphinBot" alt="GitHub code size"/>
-
+  <a href="https://github.com/NeonAngelThreads/DolphinBot/tree/master/src/main">
+     <img src="https://img.shields.io/github/languages/code-size/NeonAngelThreads/DolphinBot" alt="GitHub code size"/>
+  </a>
   <p align="center">
      <a href="https://github.com/NeonAngelThreads/DolphinBot/blob/master/PluginDocs.md">📖Docs</a>
      ·
@@ -40,10 +41,16 @@
    - Supporting to configure the bot clusters, and start at once.
    - Supporting colourful console logging strings expression `colorizeText("&6Hello &lWorld")`.
    - Automatic answer questions in `2b2t.xin` for speeding up login process.
+   - Supporting to reload a plugin while the client is running on server.
 ## Introduction:
-   Implemented Event APIs:
-   - [`Command Systems`](https://github.com/NeonAngelThreads/DolphinBot/)
-   - [`Packet Handlers`](https://github.com/NeonAngelThreads/DolphinBot/)  
+   **Features category:**  
+   - [`Hot-Reloading Plugin`](#hot-swapping-plugins-in-game)
+
+   **Implemented Event APIs:**
+   - [`Command Systems`](PluginDocs.md#2-commands-system)
+   - [`Packet Handlers`](PluginDocs.md#3-deep-understand-dolphinapis-)  
+   - [`Player Events`](PluginDocs.md#player-events)
+   - [`Force Unicode Chat`](PluginDocs.md#unicode-string-helper)
 
    Command-line Arguments
 ## Getting Started
@@ -55,7 +62,7 @@ In this section, you will understand below how-tos:
   - **5. How to make a custom plugin**  
 
 1. **Download the Client**  
-   Download the jar archive file: `DolphinBot-[version].jar`.  
+   Download the jar archive file: `DolphinBot-[version]-full.jar`.  
    Requirements: **Java version >= 17**
 2. **Configuration of the Bot**  
 **Configuring Profile**  
@@ -164,12 +171,16 @@ In this section, you will understand below how-tos:
       ```   
       Config Options:
    
-      Config                  | Description
-      ----------------------- | -----------
-      `server`                | For defining server address.  
-      `port`                  | For defining server port.  
-      `auto-reconnecting`     | Whether reconnect to server when got kicked or disconnect by some reasons.  
-      `packet-filter-delay`   | Max receiving delay(millis) between every target packet.   
-      `max-chunk-view`        | Max scale of chunk packet receiving.  
-      `connect-timing-out`    | How long millis does it take to determine a connection time out.  
-      `reconnect-delay`       | Min delay(millis) for cooling down when reconnect a server.  
+      | Config                | Description                                                                |
+      |-----------------------|----------------------------------------------------------------------------|
+      | `server`              | For defining server address.                                               |
+      | `port`                | For defining server port.                                                  |
+      | `auto-reconnecting`   | Whether reconnect to server when got kicked or disconnect by some reasons. |
+      | `packet-filter-delay` | Max receiving delay(millis) between every target packet.                   |
+      | `max-chunk-view`      | Max scale of chunk packet receiving.                                       |
+      | `connect-timing-out`  | How long millis does it take to determine a connection time out.           |
+      | `reconnect-delay`     | Min delay(millis) for cooling down when reconnect a server.                |
+## Hot Swapping Plugins In-Game
+Dolphin bot supports you to hot-reload plugins in server, without quit the entire client and reconnecting to server.
+You can send `!reload <pluginName>` dolphin command in server chat.
+Console controlling are still in-developing, currently. 

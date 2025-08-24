@@ -16,8 +16,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public abstract class AbstractEventProcessor<T extends MinecraftPacket> extends IMinecraftSessionListener {
-    private static final Logger log = LoggerFactory.getLogger("PacketHandles");
+public abstract class AbstractEventProcessor<T extends MinecraftPacket> extends SessionAdapter {
+    private static final Logger log = LoggerFactory.getLogger(ConsoleTokens.colorizeText("&l&9PacketHandlers"));
     protected long time_elapse = System.currentTimeMillis();
     private final long DELAY;
     protected List<IActions<T>> actionList = new ArrayList<>();
@@ -36,10 +36,8 @@ public abstract class AbstractEventProcessor<T extends MinecraftPacket> extends 
         this(action, 0);
     }
 
-
-//TODO Move packet receiver method into subclass method, make another subclass to handle disconnecting event with onDisconnection(_)
     @Override
-    public void onPacket(Session session, MinecraftPacket packet){
+    public void packetReceived(Session session, Packet packet){
         if (System.currentTimeMillis() - this.time_elapse < this.DELAY){
             return;
         }
@@ -62,7 +60,7 @@ public abstract class AbstractEventProcessor<T extends MinecraftPacket> extends 
     }
 
 
-    protected abstract boolean isTargetPacket(MinecraftPacket packet);
+    protected abstract boolean isTargetPacket(Packet packet);
     public SessionAdapter addExtraAction(IActions<T> action){
         this.actionList.add(action);
         return this;

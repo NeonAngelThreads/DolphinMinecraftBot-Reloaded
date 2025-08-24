@@ -2,11 +2,10 @@ package org.angellock.impl.extensions;
 
 import net.kyori.adventure.text.TextComponent;
 import org.angellock.impl.AbstractRobot;
-import org.angellock.impl.commands.CommandBuilder;
-import org.angellock.impl.events.packets.LoginHandler;
-import org.angellock.impl.events.packets.PlayerLogInfo;
-import org.angellock.impl.events.packets.SystemChatHandler;
-import org.angellock.impl.events.packets.TitlePacketHandler;
+import org.angellock.impl.events.handlers.LoginHandler;
+import org.angellock.impl.events.handlers.PlayerLogInfo;
+import org.angellock.impl.events.handlers.SystemChatHandler;
+import org.angellock.impl.events.handlers.TitlePacketHandler;
 import org.angellock.impl.providers.AbstractPlugin;
 import org.angellock.impl.util.ConsoleDecorations;
 import org.angellock.impl.util.ConsoleTokens;
@@ -16,6 +15,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.PlayerListEntry;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.HandPreference;
 import org.geysermc.mcprotocollib.protocol.data.game.setting.ChatVisibility;
+import org.geysermc.mcprotocollib.protocol.data.game.setting.ParticleStatus;
 import org.geysermc.mcprotocollib.protocol.packet.common.serverbound.ServerboundClientInformationPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundSetCarriedItemPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundUseItemPacket;
@@ -139,7 +139,7 @@ public class BaseDefaultPlugin extends AbstractPlugin {
     }
 
     public void joinGame(AbstractRobot player){
-        player.sendPacket(new ServerboundClientInformationPacket("en-us", 12, ChatVisibility.FULL, true, new ArrayList<>(), HandPreference.LEFT_HAND, true, true));
+        player.sendPacket(new ServerboundClientInformationPacket("en-us", 12, ChatVisibility.FULL, true, new ArrayList<>(), HandPreference.LEFT_HAND, true, true, ParticleStatus.ALL));
                     player.sendPacket(new ServerboundSetCarriedItemPacket(1));
                     player.sendPacket(new ServerboundUseItemPacket(
                             Hand.MAIN_HAND,

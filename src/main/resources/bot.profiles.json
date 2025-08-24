@@ -1,10 +1,9 @@
 {
   "profiles": {
     "bot#1": {
-      "name": "DolphinBot调试",
-      "password": "33212abs",
+      "name": "DolphinTest",
+      "password": "default_password",
       "owner": "Melibertan",
-
       "enabled_plugins": [
         "QuestionAnswerer",
         "MessageDisplay",
@@ -12,40 +11,9 @@
       ]
     },
     "bot#2": {
-      "name": "Dolphin线程1",
-      "password": "33212abs",
+      "name": "DolphinThread1",
+      "password": "pwd_here",
       "owner": "Melibertan",
-
-      "enabled_plugins": [
-        "HumanVerify",
-        "MessageDisplay"
-      ]
-    },
-    "bot#3": {
-      "name": "Dolphin线程2",
-      "password": "33212abs",
-      "owner": "Melibertan",
-
-      "enabled_plugins": [
-        "HumanVerify",
-        "MessageDisplay"
-      ]
-    },
-    "bot#4": {
-      "name": "Dolphin线程3",
-      "password": "33212abs",
-      "owner": "Melibertan",
-
-      "enabled_plugins": [
-        "HumanVerify",
-        "MessageDisplay"
-      ]
-    },
-    "bot#5": {
-      "name": "Dolphin线程4",
-      "password": "33212abs",
-      "owner": "Melibertan",
-
       "enabled_plugins": [
         "HumanVerify",
         "MessageDisplay"

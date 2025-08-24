@@ -2,7 +2,7 @@ package org.angellock.impl.extensions;
 
 import net.kyori.adventure.text.TextComponent;
 import org.angellock.impl.AbstractRobot;
-import org.angellock.impl.events.packets.SystemChatHandler;
+import org.angellock.impl.events.handlers.SystemChatHandler;
 import org.angellock.impl.managers.QuestionManager;
 import org.angellock.impl.providers.AbstractPlugin;
 import org.angellock.impl.util.ConsoleTokens;

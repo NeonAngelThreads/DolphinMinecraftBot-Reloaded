@@ -22,6 +22,7 @@ import java.util.List;
 
 public class Start {
     private static final Logger log = LoggerFactory.getLogger(Start.class);
+    private static final boolean win32 = System.getProperty("os.name").toLowerCase().contains("windows");
 
     public static void main(String[] args) {
         OptionParser optionParser = new OptionParser();
@@ -57,5 +58,9 @@ public class Start {
         ConfigManager config = new ConfigManager(parsedOption, defaultConfigPath);
         BotManager botManager = new BotManager(defaultConfigPath, ".json", config).globalPluginManager(parsedOption.valueOf(pluginDir)).loadProfiles(profiles);
         botManager.startAll();
+    }
+
+    public static boolean isWindows() {
+        return win32;
     }
 }

@@ -13,14 +13,14 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FilenameFilter;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class PluginManager extends Manager implements IPluginInjectable{
     private static final Logger log = LoggerFactory.getLogger(ConsoleTokens.colorizeText("&9PluginManager"));
     private final FilenameFilter pluginFilePattern = (d,name)->name.endsWith(".jar");
     private final Map<String, AbstractPlugin> registeredPlugins = new HashMap<>();
+    private final Map<String, File> loadedExternalPlugin = new HashMap<>();
+    private final Collection<Plugin> enabled_base_plugin = new ArrayList<>();
     private final File pluginFolder;
     private final PluginLoader loader;
 
@@ -64,7 +64,7 @@ public class PluginManager extends Manager implements IPluginInjectable{
             }
             return;
         }
-        for (Plugin aDefault : botInstance.enabled_base_plugin) {
+        for (Plugin aDefault : this.enabled_base_plugin) {
             enable(aDefault, botInstance);
         }
 
@@ -119,13 +119,13 @@ public class PluginManager extends Manager implements IPluginInjectable{
         target.onDisable();
         target.setEnabled(false);
     }
-    @Override
+
     public void enable(Plugin plugin, AbstractRobot provider){
         plugin.onLoad();
         if (!plugin.isEnabled()){
             plugin.setEnabled(true);
             this.registerPlugin(plugin);
-            plugin.enable(provider);
+            plugin.onEnables(provider);
 
             List<SessionListener> listeners = plugin.getListeners();
             log.info(ConsoleTokens.colorizeText("&7[&bEventBus&7] &eRegistering Listener From Plugin &6{}"), plugin.getName());
@@ -144,11 +144,22 @@ public class PluginManager extends Manager implements IPluginInjectable{
     public void loadPlugin(AbstractRobot botInstance, File target) {
         Plugin plugin = this.loader.loadPluginClass(target);
         if (plugin != null) {
-            log.info(ConsoleTokens.standardizeText(ConsoleTokens.DARK_GREEN + "Registering plugin: " + ConsoleTokens.AQUA + plugin.getName()));
+            log.info(ConsoleTokens.colorizeText("&2Registering plugin: &b" + plugin.getName()));
             enable(plugin, botInstance);
+            this.loadedExternalPlugin.put(plugin.getName().toLowerCase(), target);
         }else {
-            log.error(ConsoleTokens.standardizeText("Failed to register the plugin " + ConsoleTokens.DARK_RED + target));
+            log.error(ConsoleTokens.colorizeText("Failed to register the plugin &4" + target));
         }
     }
 
+    public void reloadPlugin(AbstractRobot botInstance, String pluginName){
+        File pluginFile = this.loadedExternalPlugin.get(pluginName);
+        if (pluginFile.exists()){
+            this.loadPlugin(botInstance, pluginFile);
+        }
+    }
+
+    public Collection<Plugin> getDefaultPlugins() {
+        return enabled_base_plugin;
+    }
 }

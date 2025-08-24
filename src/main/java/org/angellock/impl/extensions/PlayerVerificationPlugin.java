@@ -3,11 +3,10 @@ package org.angellock.impl.extensions;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import org.angellock.impl.AbstractRobot;
-import org.angellock.impl.events.IDisconnectListener;
-import org.angellock.impl.events.packets.ContainerPacketHandler;
-import org.angellock.impl.events.packets.LoginHandler;
-import org.angellock.impl.events.packets.SystemChatHandler;
-import org.angellock.impl.events.packets.TitlePacketHandler;
+import org.angellock.impl.events.handlers.ContainerPacketHandler;
+import org.angellock.impl.events.handlers.LoginHandler;
+import org.angellock.impl.events.handlers.SystemChatHandler;
+import org.angellock.impl.events.handlers.TitlePacketHandler;
 import org.angellock.impl.providers.AbstractPlugin;
 import org.angellock.impl.util.ConsoleTokens;
 import org.angellock.impl.util.TextComponentSerializer;
@@ -52,7 +51,10 @@ public class PlayerVerificationPlugin extends AbstractPlugin {
 
     @Override
     public void onDisable() {
-
+        this.hasLoggedIn = false;
+        this.schedulerThread = null;
+        this.autoLoginThread = null;
+        this.getListeners().clear();
     }
 
     @Override
@@ -63,6 +65,7 @@ public class PlayerVerificationPlugin extends AbstractPlugin {
     @Override
     public void onEnable(AbstractRobot entityBot) {
         this.botInstance = entityBot;
+        this.hasLoggedIn = false;
 
         if (this.schedulerThread == null) {
             this.schedulerThread = new Thread(() -> {
@@ -112,7 +115,7 @@ public class PlayerVerificationPlugin extends AbstractPlugin {
                             break;
                         }
 
-                        //log.info(this.serverGamemode.name());
+//                        log.info(entityBot.getServerGamemode().name());
                         if (!this.hasLoggedIn) {
                             entityBot.sendPacket(new ServerboundChatCommandPacket("login " + entityBot.getPassword()));
                         }else if (this.botInstance.getServerGamemode() != GameMode.SURVIVAL){

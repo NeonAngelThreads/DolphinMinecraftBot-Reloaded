@@ -1,16 +1,24 @@
 package org.angellock.impl;
 
-import com.google.errorprone.annotations.ThreadSafe;
+import org.angellock.impl.ingame.IPlayer;
 import org.angellock.impl.managers.ConfigManager;
 import org.angellock.impl.providers.PluginManager;
 import org.angellock.impl.util.ConsoleTokens;
+import org.angellock.impl.util.math.Position;
+import org.cloudburstmc.math.vector.Vector3d;
 import org.geysermc.mcprotocollib.network.tcp.TcpClientSession;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 
 public class RobotPlayer extends AbstractRobot {
     private long connectTime;
 
     public RobotPlayer(ConfigManager configManager, PluginManager pluginManager) {
         super(configManager, pluginManager);
+    }
+
+    @Override
+    public boolean canSendMessages() {
+        return (this.serverGamemode == GameMode.SURVIVAL);
     }
 
     @Override
@@ -48,5 +56,15 @@ public class RobotPlayer extends AbstractRobot {
     @Override
     public void onPreLogin() {
         log.info(ConsoleTokens.colorizeText("&l&bAttempt to join to the server &3"+ this.server+':'+this.port +". &bWaiting for server establishing the connection..."));
+    }
+
+    @Override
+    public double getDistanceFromOthers(IPlayer player) {
+        return this.getPosition().getDistance(player.getPosition());
+    }
+
+    @Override
+    public Position getPosition() {
+        return this.loginPos;
     }
 }

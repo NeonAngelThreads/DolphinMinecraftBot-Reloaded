@@ -27,7 +27,11 @@ public class Command {
         this.action = action;
     }
 
-    public void activate(CommandResponse entity){
-        this.action.onCommand(entity);
+    public boolean activate(CommandResponse entity){
+        if (users.contains(entity.getSender()) || users.isEmpty()) {
+            this.action.onCommand(entity);
+            return true;
+        }
+        return false;
     }
 }

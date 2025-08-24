@@ -1,13 +1,13 @@
-package org.angellock.impl.extensions.examples;
+package org.angellock.impl.events.packets;
 
 import org.angellock.impl.events.AbstractEventProcessor;
 import org.geysermc.mcprotocollib.network.packet.Packet;
 import org.geysermc.mcprotocollib.protocol.codec.MinecraftPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundPlayerChatPacket;
 
-public class MyHandler extends AbstractEventProcessor<ClientboundPlayerChatPacket> {
+public class PlayerChatPacketHandler extends AbstractEventProcessor<ClientboundPlayerChatPacket> {
     @Override
-    protected boolean isTargetPacket(Packet packet) {
-        return (packet instanceof ClientboundPlayerChatPacket);
+    protected boolean isTargetPacket(Packet minecraftPacket) {
+        return (minecraftPacket instanceof ClientboundPlayerChatPacket);
     }
 }

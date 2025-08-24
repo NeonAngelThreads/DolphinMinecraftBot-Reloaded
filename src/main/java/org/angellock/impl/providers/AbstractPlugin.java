@@ -1,16 +1,8 @@
 package org.angellock.impl.providers;
 
-import net.kyori.adventure.text.TextComponent;
 import org.angellock.impl.AbstractRobot;
-import org.angellock.impl.commands.Command;
-import org.angellock.impl.commands.CommandResponse;
-import org.angellock.impl.commands.CommandSerializer;
 import org.angellock.impl.commands.CommandSpec;
-import org.angellock.impl.events.packets.SystemChatHandler;
 import org.angellock.impl.managers.utils.Manager;
-import org.angellock.impl.util.ConsoleTokens;
-import org.angellock.impl.util.PlainTextSerializer;
-import org.angellock.impl.util.TextComponentSerializer;
 import org.geysermc.mcprotocollib.network.event.session.SessionListener;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -19,7 +11,6 @@ import org.slf4j.LoggerFactory;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public abstract class AbstractPlugin extends Manager implements Plugin {
@@ -29,7 +20,7 @@ public abstract class AbstractPlugin extends Manager implements Plugin {
     private boolean enabled = false;
     private Manifest pluginManifest;
     private final List<SessionListener> listeners = new ArrayList<>();
-    private final CommandSpec commands = new CommandSpec();
+    private AbstractRobot targetBot;
     private static final Logger log = LoggerFactory.getLogger(AbstractPlugin.class);
     protected Thread schedulerThread;
 
@@ -62,27 +53,13 @@ public abstract class AbstractPlugin extends Manager implements Plugin {
     }
 
     public CommandSpec getCommands(){
-        return this.commands;
+        return this.targetBot.getRegisteredCommands();
     }
-
-    public void enable(AbstractRobot robot){
-
+    @Override
+    public void onEnables(AbstractRobot targetBot){
+        this.targetBot = targetBot;
         if (this.listeners.isEmpty()) {
-            this.listeners.add(new SystemChatHandler().addExtraAction((chatPacket -> {
-                CommandSerializer serializer = new CommandSerializer();
-                PlainTextSerializer componentSerializer = new PlainTextSerializer();
-                String commandMsg = componentSerializer.serialize(chatPacket.getContent());
-                CommandResponse meta = serializer.serialize(commandMsg);
-                if (meta != null) {
-                    log.info("CommandList: {}, sender: {}", Arrays.toString(meta.getCommandList()), meta.getSender());
-                    Command cmd = this.commands.getCommand(meta.getCommandList()[0]);
-                    if(cmd != null){
-                        cmd.activate(meta);
-                    }
-                }
-            })));
-
-            onEnable(robot);
+            onEnable(this.targetBot);
         }
     }
     public abstract void onEnable(final AbstractRobot entityBot);

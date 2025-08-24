@@ -25,13 +25,6 @@ public class PluginLoader{
     private static final Logger log = LoggerFactory.getLogger(PluginLoader.class);
     private final Gson gson = new Gson();
 
-//    public PluginLoader(String pluginFolder) {
-//        this.pluginFolder = new File(pluginFolder);
-//    }
-//    public PluginLoader(File pluginFolder) {
-//        this.pluginFolder = pluginFolder;
-//    }
-
     public Plugin loadDefaultPlugin(){
         return new BaseDefaultPlugin();
     }
@@ -51,12 +44,13 @@ public class PluginLoader{
                 jarClass = Class.forName(pluginManifest.getMainClass(), true, classLoader);
 
                 if(Plugin.class.isAssignableFrom(jarClass)){
+                    classLoader.close();
                     return (Plugin) jarClass.getDeclaredConstructor().newInstance();
                 }
 
             } catch (ClassNotFoundException var11) {
-                log.warn(ConsoleTokens.standardizeText(ConsoleTokens.GOLD + "Cannot find entry class '" + pluginManifest.getMainClass() + "'" + var11));
-                log.warn(ConsoleTokens.standardizeText(ConsoleTokens.GOLD + "Trying to load fallback entry class "+ConsoleTokens.LIGHT_PURPLE+"'Plugin.class'"));
+                log.warn(ConsoleTokens.colorizeText("&6Cannot find entry class '" + pluginManifest.getMainClass() + "'" + var11));
+                log.warn(ConsoleTokens.colorizeText("&6Trying to load fallback entry class &d'Plugin.class'"));
                 try {
                     ServiceLoader<Plugin> serviceLoader = ServiceLoader.load(Plugin.class, classLoader);
                     if(serviceLoader.findFirst().isPresent()){
@@ -69,6 +63,8 @@ public class PluginLoader{
                     log.error(ConsoleTokens.standardizeText(ConsoleTokens.DARK_RED + "Failed to load plugin: "+ pluginManifest));
                     log.error(ConsoleTokens.standardizeText(ConsoleTokens.GRAY + e.toString()));
                 }
+            } catch (IOException e) {
+                throw new RuntimeException(e);
             }
 
 //            Class<?> pluginClass;
@@ -80,13 +76,12 @@ public class PluginLoader{
 //
 //            this.plugin = (Plugin)new pluginClass;
 
-
         } catch (IllegalAccessException var12) {
-            log.error(ConsoleTokens.standardizeText(ConsoleTokens.DARK_RED +"Error loading plugin: Plugin " +pluginManifest+ "has no public constructor"));
-            log.error(ConsoleTokens.standardizeText(ConsoleTokens.GRAY + var12.toString()));
+            log.error(ConsoleTokens.colorizeText("&4Error loading plugin: Plugin " +pluginManifest+ "has no public constructor"));
+            log.error(ConsoleTokens.colorizeText("&7{}"), var12.toString());
         } catch (MalformedURLException | InstantiationException | NoSuchMethodException | InvocationTargetException e) {
-            log.error(ConsoleTokens.standardizeText(ConsoleTokens.DARK_RED+"Failed to load plugin " +
-                    pluginManifest + ConsoleTokens.RED + " No such entry class named "+ ConsoleDecorations.UNDERLINED +pluginManifest.getMainClass())
+            log.error(ConsoleTokens.colorizeText("&4Failed to load plugin " +
+                    pluginManifest + "&c No such entry class named &l&5"+ pluginManifest.getMainClass())
             );
 
             log.error(ConsoleTokens.standardizeText(ConsoleTokens.GRAY + e.toString()));
@@ -104,14 +99,14 @@ public class PluginLoader{
                 jar = new JarFile(plugin);
                 JarEntry entry = jar.getJarEntry("plugin.json");
                 if (entry == null) {
-                    log.error(ConsoleTokens.standardizeText(ConsoleTokens.DARK_RED+"The jar file should either specified Main class as Plugin.class or define a custom class name in plugin.json"));
+                    log.error(ConsoleTokens.colorizeText("&4The jar file should either specified Main class as Plugin.class or define a custom class name in plugin.json"));
                 }
 
                 stream = jar.getInputStream(entry);
                 manifest = this.gson.fromJson(new InputStreamReader(stream, StandardCharsets.UTF_8), Manifest.class);
 
             } catch (IOException ignored) {
-                log.error(ConsoleTokens.standardizeText(ConsoleTokens.DARK_RED+"An error occurred: IOException"));
+                log.error(ConsoleTokens.colorizeText("&4An error occurred: IOException"));
             }
             finally {
                 if (jar != null) {

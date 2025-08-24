@@ -1,9 +1,8 @@
 package org.angellock.impl.extensions.examples;
 
 import org.angellock.impl.AbstractRobot;
-import org.angellock.impl.events.packets.LoginHandler;
+import org.angellock.impl.events.handlers.LoginHandler;
 import org.angellock.impl.providers.AbstractPlugin;
-import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundPlayerChatPacket;
 
 public class ExamplePlugin extends AbstractPlugin {
     @Override

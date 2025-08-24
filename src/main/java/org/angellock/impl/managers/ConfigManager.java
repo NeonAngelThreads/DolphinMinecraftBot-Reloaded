@@ -35,8 +35,8 @@ public class ConfigManager {
         return this.cache;
     }
 
-    public Object getConfigValue(Object key){
-        return this.cache.get(key);
+    public String getConfigValue(Object key){
+        return (String)this.cache.get(key);
     }
 
     private void loadConfig(){
