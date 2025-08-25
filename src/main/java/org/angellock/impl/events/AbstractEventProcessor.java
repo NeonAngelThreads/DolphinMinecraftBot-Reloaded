@@ -1,14 +1,13 @@
 package org.angellock.impl.events;
 
-import org.angellock.impl.Start;
-import org.angellock.impl.events.handlers.IPacketHandler;
+import org.angellock.impl.events.bukkit.ActiveListener;
+import org.angellock.impl.events.bukkit.Event;
 import org.angellock.impl.util.ConsoleTokens;
 import org.geysermc.mcprotocollib.network.Session;
 import org.geysermc.mcprotocollib.network.event.session.PacketErrorEvent;
 import org.geysermc.mcprotocollib.network.event.session.SessionAdapter;
 import org.geysermc.mcprotocollib.network.packet.Packet;
 import org.geysermc.mcprotocollib.protocol.codec.MinecraftPacket;
-import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundLoginPacket;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,6 +20,8 @@ public abstract class AbstractEventProcessor<T extends MinecraftPacket> extends 
     protected long time_elapse = System.currentTimeMillis();
     private final long DELAY;
     protected List<IActions<T>> actionList = new ArrayList<>();
+    protected IActions<T> preAction = (T) -> {
+    };
 
     public AbstractEventProcessor(long filterDelay){
         this.DELAY = filterDelay;
@@ -43,8 +44,10 @@ public abstract class AbstractEventProcessor<T extends MinecraftPacket> extends 
         }
         try {
             if(packet != null && this.isTargetPacket(packet)){
+                T packet1 = (T) packet;
+                this.preAction.onAction(packet1);
                 for (IActions<T> reacts : this.actionList) {
-                    reacts.onAction((T) packet);
+                    reacts.onAction(packet1);
                 }
             }
         } catch (ClassCastException omit) {
@@ -54,11 +57,21 @@ public abstract class AbstractEventProcessor<T extends MinecraftPacket> extends 
 
     @Override
     public void packetError(PacketErrorEvent event) {
-        log.warn(ConsoleTokens.standardizeText(ConsoleTokens.YELLOW + "A packet error was detected: "+ConsoleTokens.GRAY+"At event " + ConsoleTokens.GOLD + event));
-        log.error(ConsoleTokens.standardizeText(ConsoleTokens.GRAY + event.getCause().toString()));
+        log.warn(ConsoleTokens.colorizeText("&eA packet error was detected: &7At event &6" + event));
+        log.error(ConsoleTokens.colorizeText("&7" + event.getCause().toString()));
         event.setSuppress(false);
     }
 
+    protected void dispatch(Event event) {
+        HandlerMapper mapper = event.getMapper();
+        for (ActiveListener listener : mapper.getRegisteredListenersInOrder()) {
+            try {
+                listener.call(event);
+            } catch (Throwable throwable) {
+                log.error(ConsoleTokens.colorizeText("&6Could not pass event &7{}"), throwable.getClass(), throwable);
+            }
+        }
+    }
 
     protected abstract boolean isTargetPacket(Packet packet);
     public SessionAdapter addExtraAction(IActions<T> action){

@@ -7,7 +7,6 @@ import org.angellock.impl.events.handlers.PlayerLogInfo;
 import org.angellock.impl.events.handlers.SystemChatHandler;
 import org.angellock.impl.events.handlers.TitlePacketHandler;
 import org.angellock.impl.providers.AbstractPlugin;
-import org.angellock.impl.util.ConsoleDecorations;
 import org.angellock.impl.util.ConsoleTokens;
 import org.angellock.impl.util.TextComponentSerializer;
 import org.geysermc.mcprotocollib.auth.GameProfile;
@@ -62,13 +61,9 @@ public class BaseDefaultPlugin extends AbstractPlugin {
 
     @Override
     public void onEnable(AbstractRobot robotEntity) {
-        //            receive Command object.              builder                             return new Command object
-//        getCommands().register(new CommandBuilder().withName("uid").allowedUsers("Melibertan").build((response) -> {
-//
-//        }));
 
         getListeners().add(new LoginHandler().addExtraAction(packet -> {
-            log.info(ConsoleTokens.standardizeText(ConsoleDecorations.BOLD.toString() + ConsoleTokens.AQUA + "Successfully logged-in to server world."));
+            log.info(ConsoleTokens.colorizeText("&l&bSuccessfully logged-in to server world."));
 
         }));
 
@@ -89,7 +84,7 @@ public class BaseDefaultPlugin extends AbstractPlugin {
                     GameProfile playerProfile = player.getProfile();
                     this.onlinePlayers.put(profileUUID, playerProfile);
                     if (playerProfile != null) {
-                        log.info(ConsoleTokens.GRAY+"["+ConsoleTokens.GREEN+"+"+ConsoleTokens.GRAY+"]"+this.getLogMsg(playerProfile));
+                        log.info(ConsoleTokens.colorizeText("&7[&a+&7]") + this.getLogMsg(playerProfile));
                     }
                 }
             }
@@ -116,7 +111,7 @@ public class BaseDefaultPlugin extends AbstractPlugin {
             }
             GameProfile player = this.onlinePlayers.get(logoutPlayer);
 
-            log.info(ConsoleTokens.GRAY+"["+ConsoleTokens.DARK_RED+"-"+ConsoleTokens.GRAY+"]"+this.getLogMsg(player));
+            log.info(ConsoleTokens.colorizeText("&7[&4-&7]") + this.getLogMsg(player));
             this.onlinePlayers.remove(logoutPlayer);
         })));
 
@@ -124,13 +119,12 @@ public class BaseDefaultPlugin extends AbstractPlugin {
 
     public String getLogMsg(GameProfile player){
 
-        //log.info(ConsoleTokens.standardizeText(ConsoleTokens.GRAY + Arrays.toString(players)));
         List<GameProfile.Property> playerProperty = player.getProperties();
-        String state = (playerProperty.isEmpty()) ? ConsoleTokens.GRAY+" ["+ConsoleTokens.DARK_RED+"盗版"+ConsoleTokens.GRAY+"] " : ConsoleTokens.GRAY+" ["+ConsoleTokens.GREEN+"正版"+ConsoleTokens.GRAY+"] ";
+        String state = (playerProperty.isEmpty()) ? " &7[&4盗版&7] " : " &7[&a正版&7] ";
         String playerName = player.getName();
         UUID playerUUID = player.getId();
 
-        return ConsoleTokens.standardizeText(ConsoleTokens.AQUA + playerName + state + ConsoleTokens.GRAY + playerUUID);
+        return ConsoleTokens.colorizeText("&b" + playerName + state + "&7" + playerUUID);
 
 //        if(!playerProperty.isEmpty()){
 //            log.info(ConsoleTokens.standardizeText(ConsoleTokens.YELLOW + playerName + "的正版皮肤: " + ConsoleTokens.GRAY + playerProperty));

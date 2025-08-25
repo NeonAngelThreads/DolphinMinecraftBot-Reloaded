@@ -3,27 +3,20 @@ package org.angellock.impl.managers;
 import com.google.gson.JsonElement;
 import org.angellock.impl.AbstractRobot;
 import org.angellock.impl.RobotPlayer;
-import org.angellock.impl.extensions.BaseDefaultPlugin;
-import org.angellock.impl.extensions.PlayerVerificationPlugin;
 import org.angellock.impl.extensions.Plugins;
-import org.angellock.impl.extensions.QuestionAnswererPlugin;
 import org.angellock.impl.providers.Plugin;
 import org.angellock.impl.providers.PluginManager;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
-import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.ServerboundChatPacket;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.time.Instant;
 import java.util.*;
 
 public class BotManager extends ResourceHelper {
     private static final Logger log = LoggerFactory.getLogger("BotManager");
     private final Map<String, RobotPlayer> bots = new HashMap<>();
     private final ArrayList<Thread> botSessions = new ArrayList<>();
-    private final Queue<RobotPlayer> disconnectedBots = new ArrayDeque<>();
     private final ConfigManager botConfigHelper;
     private PluginManager pluginManager;
     public BotManager(@Nullable String defaultPath, String fileType, ConfigManager botConfigHelper) {
@@ -36,19 +29,23 @@ public class BotManager extends ResourceHelper {
         return this;
     }
 
+    public String[] escapeArrayCommandLine(String option) {
+        if (option != null) {
+            return option.replaceAll("\"", "").split(";");
+        }
+        return new String[0];
+    }
     public BotManager loadProfiles(String profileString){
         String commandLinePlayerName = (String)this.botConfigHelper.getConfigValue("username");
         String commandLinePWD = (String)this.botConfigHelper.getConfigValue("password");
         String commandLineOwner = (String)this.botConfigHelper.getConfigValue("owner");
-        if(commandLinePlayerName != null && commandLineOwner != null && commandLinePWD != null){
+        if (commandLinePlayerName != null && commandLinePWD != null) {
             this.registerBot(commandLinePlayerName, commandLinePWD, commandLineOwner);
             return this;
         }
 
-        String[] profileKeys = new String[0];
-        if (profileString != null) {
-            profileKeys = profileString.replaceAll("\"","").split(";");
-        }
+        String[] profileKeys = this.escapeArrayCommandLine(profileString);
+
         Map<String, JsonElement> jsonObject = this.readJSONContent();
         Map<String, JsonElement> profiles = jsonObject.get("profiles").getAsJsonObject().asMap();
 
@@ -68,6 +65,7 @@ public class BotManager extends ResourceHelper {
         Map<String, JsonElement> profile = profiles.get(name).getAsJsonObject().asMap();
         String botName = profile.get("name").getAsString();
         String password = profile.get("password").getAsString();
+        List<JsonElement> owners = profile.get("owner").getAsJsonArray().asList();
 
         List<JsonElement> plugins = profile.get("enabled_plugins").getAsJsonArray().asList();
         List<Plugin> pluginList = new ArrayList<>();
@@ -81,12 +79,19 @@ public class BotManager extends ResourceHelper {
                 .withDefaultPlugins(pluginList)
                 .withProfileName(name)
                 .withBotManager(this)
+                .withOwners(owners)
                 .buildProtocol();
         this.bots.put(name, (RobotPlayer) botInst);
     }
 
     private void registerBot(String username, String password, String owner){
-        AbstractRobot botInst = new RobotPlayer(this.botConfigHelper, pluginManager).withName(username).withPassword(password).buildProtocol();
+        String[] owners = this.escapeArrayCommandLine(owner);
+
+        AbstractRobot botInst = new RobotPlayer(this.botConfigHelper, pluginManager)
+                .withName(username)
+                .withPassword(password)
+                .withOwners(owners)
+                .buildProtocol();
         for (Plugins plugins: Plugins.values()){
             botInst.getPluginManager().getDefaultPlugins().add(plugins.getPlugin());
         }

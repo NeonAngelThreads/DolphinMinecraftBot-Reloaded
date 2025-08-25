@@ -2,6 +2,8 @@ package org.angellock.impl.providers;
 
 import org.angellock.impl.AbstractRobot;
 import org.angellock.impl.commands.CommandSpec;
+import org.angellock.impl.events.EventDispatcher;
+import org.angellock.impl.events.IListener;
 import org.angellock.impl.managers.utils.Manager;
 import org.geysermc.mcprotocollib.network.event.session.SessionListener;
 import org.jetbrains.annotations.Nullable;
@@ -19,6 +21,7 @@ public abstract class AbstractPlugin extends Manager implements Plugin {
     private Manifest manifest;
     private boolean enabled = false;
     private Manifest pluginManifest;
+    private final EventDispatcher dispatcher = new EventDispatcher();
     private final List<SessionListener> listeners = new ArrayList<>();
     private AbstractRobot targetBot;
     private static final Logger log = LoggerFactory.getLogger(AbstractPlugin.class);
@@ -38,6 +41,10 @@ public abstract class AbstractPlugin extends Manager implements Plugin {
         String path = getBaseConfigRoot();
         this.dataPath = Path.of(path);
         this.simpleName = this.getClass().getSimpleName();
+    }
+
+    public void registerEvent(IListener listener) {
+        this.dispatcher.registerEvents(listener, this);
     }
 
     public String getSimpleName() {

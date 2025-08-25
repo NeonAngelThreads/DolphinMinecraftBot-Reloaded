@@ -1,7 +1,11 @@
 package org.angellock.impl;
 
 
-import org.angellock.impl.commands.*;
+import com.google.gson.JsonElement;
+import org.angellock.impl.commands.Command;
+import org.angellock.impl.commands.CommandResponse;
+import org.angellock.impl.commands.CommandSerializer;
+import org.angellock.impl.commands.CommandSpec;
 import org.angellock.impl.events.IConnectListener;
 import org.angellock.impl.events.IDisconnectListener;
 import org.angellock.impl.events.handlers.SystemChatHandler;
@@ -18,12 +22,12 @@ import org.angellock.impl.providers.SessionProvider;
 import org.angellock.impl.util.ConsoleTokens;
 import org.angellock.impl.util.PlainTextSerializer;
 import org.angellock.impl.util.math.Position;
-import org.cloudburstmc.math.vector.Vector3d;
 import org.geysermc.mcprotocollib.network.Session;
 import org.geysermc.mcprotocollib.network.tcp.TcpClientSession;
 import org.geysermc.mcprotocollib.protocol.MinecraftProtocol;
 import org.geysermc.mcprotocollib.protocol.codec.MinecraftPacket;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,8 +57,9 @@ public abstract class AbstractRobot implements ISendable, SessionProvider, IOpti
     protected short port;
     protected String name;
     private String profileName;
+    protected List<String> owners = new ArrayList<>();
     protected String password;
-    private final CommandSpec commands = new CommandSpec();
+    protected final CommandSpec commands = new CommandSpec();
 
     public AbstractRobot(ConfigManager configManager, PluginManager pluginManager){
         this.config = configManager;
@@ -71,14 +76,24 @@ public abstract class AbstractRobot implements ISendable, SessionProvider, IOpti
         this.TIME_OUT = Integer.parseInt((String) this.config.getConfigValue("connect-timing-out"));
         this.ReconnectionDelay = Integer.parseInt((String) this.config.getConfigValue("reconnect-delay"));
 
-        this.commands.register(new CommandBuilder().withName("reload").allowedUsers(config.getConfigValue("owner")).build((act)->{
-            this.pluginManager.reloadPlugin(this, act.getCommandList()[1].toLowerCase());
-        }));
-
     }
 
     public AbstractRobot withName(String userName){
         this.name = userName;
+        return this;
+    }
+
+    public AbstractRobot withOwners(String... owners) {
+        this.owners = List.of(owners);
+        return this;
+    }
+
+    public AbstractRobot withOwners(List<JsonElement> owners) {
+        List<String> stringOwners = new ArrayList<>();
+        for (JsonElement obj : owners) {
+            stringOwners.add(obj.getAsString());
+        }
+        this.owners = stringOwners;
         return this;
     }
 
@@ -147,12 +162,15 @@ public abstract class AbstractRobot implements ISendable, SessionProvider, IOpti
         })));
 
         this.serverSession.addListener(new AddEntityPacket().addExtraAction((entityPacket -> {
-            if (this.onlinePlayers.get(entityPacket.getEntityId()) == null) {
-                this.onlinePlayers.put(entityPacket.getEntityId(), new Player(entityPacket.getEntityId(), new Position(entityPacket.getX(), entityPacket.getY(), entityPacket.getZ())));
+            if (entityPacket.getType() == EntityType.PLAYER) {
+                if (this.onlinePlayers.get(entityPacket.getEntityId()) == null) {
+                    this.onlinePlayers.put(entityPacket.getEntityId(), new Player(entityPacket.getEntityId(), new Position(entityPacket.getX(), entityPacket.getY(), entityPacket.getZ())));
+                }
             }
         })));
         this.serverSession.addListener(new TeleportEntityPacket().addExtraAction((teleportEntityPacket -> {
             this.onlinePlayers.get(teleportEntityPacket.getId()).setPosition(teleportEntityPacket.getPosition().getX(), teleportEntityPacket.getPosition().getX(), teleportEntityPacket.getPosition().getZ());
+
         })));
         this.serverSession.addListener(new PlayerPositionPacket().addExtraAction((packet->{
             log.info(ConsoleTokens.colorizeText("&7Login At Position &b{}"), packet.getPosition());

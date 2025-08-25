@@ -47,8 +47,10 @@
    - [`Hot-Reloading Plugin`](#hot-swapping-plugins-in-game)
 
    **Implemented Event APIs:**
-   - [`Command Systems`](PluginDocs.md#2-commands-system)
-   - [`Packet Handlers`](PluginDocs.md#3-deep-understand-dolphinapis-)  
+
+- [`Event Handler System`](PluginDocs.md#3-register-event-handlers)
+- [`Command System`](PluginDocs.md#2-commands-system)
+- [`Packet Handlers`](PluginDocs.md#3-deep-understand-dolphinapis-)
    - [`Player Events`](PluginDocs.md#player-events)
    - [`Force Unicode Chat`](PluginDocs.md#unicode-string-helper)
 
@@ -111,7 +113,7 @@ In this section, you will understand below how-tos:
                "bot#1": {
                   "name": "Player494",
                   "password": "123example",
-                  "owner": "player_name",
+                  "owner": ["player_name"],
          
                   "enabled_plugins": [
                      "QuestionAnswerer",
@@ -122,7 +124,7 @@ In this section, you will understand below how-tos:
                "bot#2": {
                   "name": "Player495",  
                   "password": "password",
-                  "owner": "player_name",
+                  "owner": ["player_name", "other_owner"],
          
                   "enabled_plugins": [
                      "HumanVerify"
@@ -142,7 +144,8 @@ In this section, you will understand below how-tos:
          java -jar "DolphinBot-[version].jar" -profiles="bot#1"
          ```   
          If you want to start multiple bot simultaneously, specify multiple profile name as a list in option `-profiles`, for
-         each profile name, should be split with ";".  
+      each profile name, should be split with ";".
+
          **Examples:**  
          ```bash
          java -jar "DolphinBot-[version].jar" -profiles="bot#1;bot#2"
@@ -150,7 +153,39 @@ In this section, you will understand below how-tos:
          ```bash
          java -jar "DolphinBot-[version].jar" -profiles="bot#1;bot#2;bot#3;..."
          ```
-         - **Warning**: If the `--profiles` option is absented, it will load all bots in profile config by default.
+       - **Warning**: If the `--profiles` option is absented, it will load all bots in profile config by default.
+
+      **Owners:**  
+      If you want to limit a bot can be only use by specified player(s) you can put player names into `owner` as list.  
+      **Example:**
+         ```json
+         {
+            "profiles": {
+               "bot#1": {
+                  "name": "Player494",
+                  "password": "123example",
+                  "owner": [
+                     "owner1", 
+                     "owner2",
+                     "owner3"
+                  ],
+
+                  "enabled_plugins": [
+                     "QuestionAnswerer",
+                     "MessageDisplay",
+                     "HumanVerify"
+                  ]
+               }
+            }
+         }
+        ```
+
+      Or you can directly define it by command line.  
+      **Example:**
+      `--owner=Melibertan`, of course, you also can define multiple names:  
+      For each owner name, should be split with ";".  
+      **Example:**
+      `--owner=owner1;owner2;owner3;...`
    2. **Advanced Configurations (optional)**  
       If you want to access more advanced configs, you can edit `mc.bot.config.json`.  
       Every single config option is equilibrium to option that defined by command line, and all config value including

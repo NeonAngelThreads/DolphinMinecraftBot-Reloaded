@@ -3,7 +3,9 @@
     "bot#1": {
       "name": "DolphinTest",
       "password": "default_password",
-      "owner": "Melibertan",
+      "owner": [
+        "Melibertan"
+      ],
       "enabled_plugins": [
         "QuestionAnswerer",
         "MessageDisplay",
@@ -13,7 +15,9 @@
     "bot#2": {
       "name": "DolphinThread1",
       "password": "pwd_here",
-      "owner": "Melibertan",
+      "owner": [
+        "Melibertan"
+      ],
       "enabled_plugins": [
         "HumanVerify",
         "MessageDisplay"

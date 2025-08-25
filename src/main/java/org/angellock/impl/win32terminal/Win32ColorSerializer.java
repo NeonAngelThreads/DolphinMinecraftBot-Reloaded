@@ -1,6 +1,5 @@
-package org.angellock.impl.util.win32terminal;
+package org.angellock.impl.win32terminal;
 
-import org.angellock.impl.util.ConsoleTokens;
 import org.jline.jansi.Ansi;
 
 import java.io.Serializable;

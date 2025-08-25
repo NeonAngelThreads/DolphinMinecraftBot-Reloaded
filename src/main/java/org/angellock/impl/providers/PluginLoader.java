@@ -2,24 +2,23 @@ package org.angellock.impl.providers;
 
 import com.google.gson.Gson;
 import org.angellock.impl.extensions.BaseDefaultPlugin;
-import org.angellock.impl.util.ConsoleDecorations;
 import org.angellock.impl.util.ConsoleTokens;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
-
-import org.slf4j.Logger;
 
 public class PluginLoader{
     private static final Logger log = LoggerFactory.getLogger(PluginLoader.class);
@@ -57,11 +56,11 @@ public class PluginLoader{
                         return serviceLoader.findFirst().get();
                     }
                     else {
-                        log.error(ConsoleTokens.standardizeText(ConsoleTokens.DARK_RED + "Failed to load plugin: "+ pluginManifest));
+                        log.error(ConsoleTokens.colorizeText("&4Failed to load plugin: " + pluginManifest));
                     }
                 } catch (NoClassDefFoundError e) {
-                    log.error(ConsoleTokens.standardizeText(ConsoleTokens.DARK_RED + "Failed to load plugin: "+ pluginManifest));
-                    log.error(ConsoleTokens.standardizeText(ConsoleTokens.GRAY + e.toString()));
+                    log.error(ConsoleTokens.colorizeText("&4Failed to load plugin: " + pluginManifest));
+                    log.error(ConsoleTokens.colorizeText("&7" + e.toString()));
                 }
             } catch (IOException e) {
                 throw new RuntimeException(e);
@@ -113,7 +112,7 @@ public class PluginLoader{
                     try {
                         jar.close();
                     } catch (IOException ignored) {
-                        log.error(ConsoleTokens.standardizeText(ConsoleTokens.DARK_RED+"An error occurred: IOException"));
+                        log.error(ConsoleTokens.colorizeText("&6An error occurred: IOException"));
                     }
                 }
 
@@ -121,7 +120,7 @@ public class PluginLoader{
                     try {
                         stream.close();
                     } catch (IOException ignored) {
-                        log.error(ConsoleTokens.standardizeText(ConsoleTokens.DARK_RED+"An error occurred: IOException"));
+                        log.error(ConsoleTokens.colorizeText("&6An error occurred: IOException"));
                     }
                 }
             }

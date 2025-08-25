@@ -1,7 +1,6 @@
 package org.angellock.impl.commands;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class Command {
@@ -9,9 +8,9 @@ public class Command {
     private final List<String> users = new ArrayList<>();
     private ICommandAction action;
 
-    public Command(String name, ICommandAction action, String...strings) {
+    public Command(String name, ICommandAction action, List<String> users) {
         this.name = name;
-        this.users.addAll(Arrays.asList(strings));
+        this.users.addAll(users);
         this.action = action;
     }
 

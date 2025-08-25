@@ -1,24 +1,30 @@
 package org.angellock.impl;
 
+import org.angellock.impl.commands.CommandBuilder;
 import org.angellock.impl.ingame.IPlayer;
 import org.angellock.impl.managers.ConfigManager;
 import org.angellock.impl.providers.PluginManager;
 import org.angellock.impl.util.ConsoleTokens;
 import org.angellock.impl.util.math.Position;
-import org.cloudburstmc.math.vector.Vector3d;
-import org.geysermc.mcprotocollib.network.tcp.TcpClientSession;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 
 public class RobotPlayer extends AbstractRobot {
     private long connectTime;
+    private long lastMsgTime;
+    private final long msgDelay;
 
     public RobotPlayer(ConfigManager configManager, PluginManager pluginManager) {
         super(configManager, pluginManager);
+
+        this.commands.register(new CommandBuilder().withName("reload").allowedUsers(this.owners).build((act) -> {
+            this.pluginManager.reloadPlugin(this, act.getCommandList()[1].toLowerCase());
+        }));
+
+        this.msgDelay = 3000L;
     }
 
     @Override
     public boolean canSendMessages() {
-        return (this.serverGamemode == GameMode.SURVIVAL);
+        return (lastMsgTime - System.currentTimeMillis() > msgDelay);
     }
 
     @Override
@@ -31,13 +37,12 @@ public class RobotPlayer extends AbstractRobot {
     public void onQuit(String reason) {
         long millis = System.currentTimeMillis() - this.connectTime;
         log.info(ConsoleTokens.colorizeText("[{}] &7Session Duration: &f{}ms"), this.getProfileName(), millis);
-        log.info(ConsoleTokens.standardizeText(ConsoleTokens.DARK_RED + "Disconnected from the server!"));
-        log.info(ConsoleTokens.standardizeText(ConsoleTokens.GOLD + "Reason: " + ConsoleTokens.LIGHT_PURPLE + reason));
+        log.info(ConsoleTokens.colorizeText("&4Disconnected from the server!"));
+        log.info(ConsoleTokens.colorizeText("&6Reason: &d" + reason));
         if (this.config.getConfigValue("auto-reconnecting").equals("true")){
-            log.info(ConsoleTokens.standardizeText(ConsoleTokens.DARK_BLUE + "Trying to reconnect to the server..."));
+            log.info(ConsoleTokens.colorizeText("&9Trying to reconnect to the server..."));
 
             if (reason.contains("验证")){
-                log.info("bypassing");
                 this.isByPassedVerification = false;
             }
             this.getPluginManager().disableAllPlugins(this);

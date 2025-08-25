@@ -2,7 +2,7 @@ package org.angellock.impl.util;
 
 import org.angellock.impl.Start;
 import org.angellock.impl.util.colorutil.SimpleColor;
-import org.angellock.impl.util.win32terminal.Win32ColorSerializer;
+import org.angellock.impl.win32terminal.Win32ColorSerializer;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;

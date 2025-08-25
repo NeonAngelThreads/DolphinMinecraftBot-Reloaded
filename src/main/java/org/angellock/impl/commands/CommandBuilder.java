@@ -1,15 +1,18 @@
 package org.angellock.impl.commands;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class CommandBuilder {
     private String commandName = "";
-    private String[] users = new String[]{};
+    private List<String> users = new ArrayList<>();
 
     public CommandBuilder withName(String cmdName){
         this.commandName = cmdName;
         return this;
     }
 
-    public CommandBuilder allowedUsers(String... users){
+    public CommandBuilder allowedUsers(List<String> users) {
         this.users = users;
         return this;
     }
