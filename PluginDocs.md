@@ -205,18 +205,19 @@ public class ExamplePlugin extends AbstractPlugin implements IListener {
 
 - Available Event Listeners:
 
-  | Event Listener     | Only Triggered When                                      |
-    |--------------------|----------------------------------------------------------|
-  | PlayerMoveEvent    | Triggered when a nearby player moves                     |
-  | EntityEmergedEvent | A entity generates, player emerged, or projectile thrown |
-  | PlayerChatEvent    | When a player send a in-game message.                    |
-- Note That:
+  | Event Listener     | Only Triggered When                                       |
+    |--------------------|-----------------------------------------------------------|
+  | PlayerMoveEvent    | Triggered when a nearby player moves                      |
+  | EntityEmergedEvent | An entity generated, player emerged, or projectile thrown |
+  | PlayerChatEvent    | When a player send a in-game message.                     |
+- Please Note That:
     - Every single handling method should annotate with `@EventHandler`.
     - All handling method should be public.
     - Remember to register the all listener classes.
 
-## 3. Deep Understand DolphinAPIs:  
-- ### 1. Listeners and PacketEvents:  
+## 4. Deep Understand DolphinAPIs:
+
+- ### 4.1. Listeners and PacketEvents:
 - In above plugin code, at `onEnable()` method, we used `getListeners()` method to get the collection of packet listeners in this plugin.  
     
    ````java
@@ -267,7 +268,7 @@ public class ExamplePlugin extends AbstractPlugin implements IListener {
     }
    ````
 
-- ### 2. Commands System:
+- ### 4.2. Commands System:
 - Command system implements an advanced and easy-used CommandAPI, it encapsulates varied base classes
   including `CommandSerializer`, `CommandBuilder` and so on, allowing you to register custom commands on your plugin
   with several simple codes.  
@@ -280,9 +281,10 @@ public class ExamplePlugin extends AbstractPlugin implements IListener {
   Command command = new CommandBuilder().withName('commandName').build((response) -> {});
   ```
   `CommandBuilder` has multiple optional chaining methods other from `.withName()`, including:
-    - `.withName(String)`: Specify command name for executing.
-    - `.allowedUsers(String...users)`: Specify only who can use this command, absent for allowing all players by default.  
-    - `.build()`: At the end, call `.build()` to construct command. It returns a `Command` object.  
+    - `.withName(String cmd)`: Specify command name for executing.
+    - `.allowedUsers(List<String> users)`: Specify only who can use this command, absent for allowing all players by
+      default.
+      - `.build()`: At the end, call `.build()` to construct command. It returns a `Command` object.  
     For example, if you want to register a command that could be triggered by chat message `!test`, only for player `PlayerName` uses, 
     and prints sub-commands you passed, the code looks like this:
   ```java
@@ -309,7 +311,7 @@ public class ExamplePlugin extends AbstractPlugin implements IListener {
     ```
     For each plugin has individual command system, and every command system is base on `SystemChatPacket` and `PlayerChatPacket` listening.  
     The command sender and command list is serialized by `CommandSerializer`.
-- ### 3. Message Manager:
+- ### 4.3. Message Manager:
     In-game chat messages sends is managed by `MessageManager`.  
     For each bot individual has a message manager. 
 ## Player Events:
@@ -371,8 +373,8 @@ Dolphin bot provides `UStringHelper` class to help you to convert the common tex
 String message = "TestText123 789";
 String stringUUID = UStringHelper.forceUnicode(message);
 ````
-    
-## 4. How a Plugin Works
+
+## 5. How a Plugin Works
   1. **Base Plugin Events**:  
    Every single plugin exists in form of a jar file managed by `PluginManager`. The `PluginManager` is used to enable
    and register plugins or disable them.  

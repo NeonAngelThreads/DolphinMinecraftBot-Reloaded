@@ -25,26 +25,37 @@ public class CommandSerializer implements Serializable {
         return extractCommandMeta(stringCommand, exclamation);
     }
 
-    public CommandResponse extractCommandMeta(String msg, char target){
+    public @Nullable CommandResponse serialize(String command, String commandSender) {
+        int indexSum = command.indexOf(exclamation) + command.indexOf(chineseExclamation);
+        if (indexSum == -1) {
+            String[] commands = command.substring(1).strip().split(" ");
+            for (int o = 0; o < commands.length; o++) {
+                commands[o] = commands[o].trim();
+            }
+            return new CommandResponse(commands, commandSender);
+        }
+        return null;
+    }
+
+    private @Nullable CommandResponse extractCommandMeta(String msg, char target) {
         Matcher matcher = this.senderPattern.matcher(msg);
         String commandSender;
-        if(!matcher.find()){
+        if (matcher.find()) {
+            commandSender = matcher.group(1);
+
+            msg = matcher.replaceAll("").trim().strip();
+            msg = ConsoleTokens.fadeText(msg);
+            if (msg.indexOf(target) < 1) {
+                msg = msg.substring(msg.indexOf(target) + 1);
+                String[] commands = msg.split(" ");
+                for (int o = 0; o < commands.length; o++) {
+                    commands[o] = commands[o].trim();
+                }
+                return new CommandResponse(commands, commandSender);
+            }
             return null;
         }
-        commandSender = matcher.group(1);
-
-        msg = matcher.replaceAll("").trim().strip();
-        msg = ConsoleTokens.fadeText(msg);
-        if(msg.indexOf(target) > 3){
-            return null;
-        }
-        msg = msg.substring(msg.indexOf(target) + 1);
-        String[] commands = msg.split(" ");
-        for (int o = 0; o < commands.length; o++) {
-            commands[o] = commands[o].trim();
-        }
-
-        return new CommandResponse(commands, commandSender);
+        return null;
     }
 
 }

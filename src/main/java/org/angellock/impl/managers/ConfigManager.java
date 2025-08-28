@@ -12,7 +12,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ConfigManager {
-    private static final Logger log = LoggerFactory.getLogger("Config-Manager");
+    private static final Logger log = LoggerFactory.getLogger(ConsoleTokens.colorizeText("&6ConfigManager"));
     private final Map<Object, Object> cache = new HashMap<>();
     private final ResourceHelper configHelper;
     public ConfigManager(OptionSet optionList, @Nullable String defaultPath){
@@ -23,7 +23,10 @@ public class ConfigManager {
         }
         this.configHelper = new RobotConfig(defaultPath, ".json");
         this.loadConfig();
-        log.info(ConsoleTokens.standardizeText(ConsoleTokens.GRAY + "Below argument options are enabled: "+ ConsoleTokens.DARK_AQUA + cache.toString()));
+    }
+
+    public void printConfigSpec() {
+        log.info(ConsoleTokens.standardizeText(ConsoleTokens.GREEN + "Below argument options are enabled: " + ConsoleTokens.DARK_AQUA + cache));
     }
     public ConfigManager(OptionSet optionList){
         this(optionList, null);
@@ -35,8 +38,8 @@ public class ConfigManager {
         return this.cache;
     }
 
-    public String getConfigValue(Object key){
-        return (String)this.cache.get(key);
+    public Object getConfigValue(Object key) {
+        return this.cache.get(key);
     }
 
     private void loadConfig(){

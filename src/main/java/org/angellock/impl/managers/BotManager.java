@@ -2,12 +2,17 @@ package org.angellock.impl.managers;
 
 import com.google.gson.JsonElement;
 import org.angellock.impl.AbstractRobot;
+import org.angellock.impl.ChatMessageManager;
 import org.angellock.impl.RobotPlayer;
 import org.angellock.impl.extensions.Plugins;
 import org.angellock.impl.providers.Plugin;
 import org.angellock.impl.providers.PluginManager;
+import org.angellock.impl.util.ConsoleTokens;
+import org.angellock.impl.win32terminal.AnsiEscapes;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 import org.jetbrains.annotations.Nullable;
+import org.jline.reader.LineReader;
+import org.jline.reader.UserInterruptException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,7 +21,8 @@ import java.util.*;
 public class BotManager extends ResourceHelper {
     private static final Logger log = LoggerFactory.getLogger("BotManager");
     private final Map<String, RobotPlayer> bots = new HashMap<>();
-    private final ArrayList<Thread> botSessions = new ArrayList<>();
+    //    private final ScheduledExecutorService terminal = Executors.newScheduledThreadPool(1);
+    private Thread terminalInput;
     private final ConfigManager botConfigHelper;
     private PluginManager pluginManager;
     public BotManager(@Nullable String defaultPath, String fileType, ConfigManager botConfigHelper) {
@@ -121,11 +127,28 @@ public class BotManager extends ResourceHelper {
     }
 
     public void startAll(){
+        LineReader reader = AnsiEscapes.getReader();
+        this.terminalInput = new Thread(() -> {
+            try {
+                while (true) {
+                    String s = reader.readLine();
+                    for (AbstractRobot dolphinBot : this.bots.values()) {
+                        ChatMessageManager messageManager = dolphinBot.getMessageManager();
+                        if (messageManager != null) {
+                            dolphinBot.getMessageManager().putMessage(s);
+                            break;
+                        }
+                    }
+                }
+            } catch (UserInterruptException w) {
+                System.exit(0);
+            } catch (Throwable e) {
+                log.info(ConsoleTokens.colorizeText("&8Failed to send message: {}"), e.getLocalizedMessage());
+            }
+        });
+        this.terminalInput.start();
         for (RobotPlayer bot: this.bots.values()){
-            Thread botThread = new Thread(()->bot.connect());
-            botSessions.add(botThread);
-
-            botThread.start();
+            bot.scheduleConnect(0);
             while (bot.getServerGamemode() == GameMode.ADVENTURE){
                 try {
                     Thread.sleep(5000L);

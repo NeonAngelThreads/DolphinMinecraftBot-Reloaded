@@ -1,9 +1,6 @@
 package org.angellock.impl.providers;
 
 import org.angellock.impl.AbstractRobot;
-import org.angellock.impl.extensions.BaseDefaultPlugin;
-import org.angellock.impl.extensions.PlayerVerificationPlugin;
-import org.angellock.impl.extensions.QuestionAnswererPlugin;
 import org.angellock.impl.managers.utils.Manager;
 import org.angellock.impl.util.ConsoleTokens;
 import org.geysermc.mcprotocollib.network.event.session.SessionListener;
@@ -34,8 +31,8 @@ public class PluginManager extends Manager implements IPluginInjectable{
 
     public PluginManager(@Nullable File pluginDir) {
         if (pluginDir == null || !pluginDir.exists() || !pluginDir.isDirectory()){
-            log.warn(ConsoleTokens.colorizeText("&4The plugin folder was invalid or not existed: &c"+ pluginDir
-                     + "&eTrying to locate the fallback directory"));
+            log.warn(ConsoleTokens.colorizeText("&eThe plugin folder was invalid or not existed: &c" + pluginDir
+                    + "&6Trying to locate the fallback directory: &d" + getBaseConfigRoot()));
             this.pluginFolder = new File(getBaseConfigRoot(), "plugins");
 
         }
@@ -46,7 +43,7 @@ public class PluginManager extends Manager implements IPluginInjectable{
     }
 
     private void registerPlugin(Plugin plugin){
-        this.registeredPlugins.putIfAbsent(plugin.getName(), (AbstractPlugin) plugin);
+        this.registeredPlugins.putIfAbsent(plugin.getName().toLowerCase(), (AbstractPlugin) plugin);
     }
 
     public void keepScheduleThreadsAlive(){
@@ -85,7 +82,7 @@ public class PluginManager extends Manager implements IPluginInjectable{
             }
         }
         if(plugins == null){
-            log.error(ConsoleTokens.colorizeText("&6The plugin folder was invalid or not found by removed, plugins will not be loaded."));
+            log.error(ConsoleTokens.colorizeText("&6The plugin folder was invalid or not found by removed, plugins will not be loaded. &8At: " + pluginFolder.getPath()));
             return;
         }
         for (File plugin: plugins){
@@ -94,7 +91,7 @@ public class PluginManager extends Manager implements IPluginInjectable{
 
         File[] individualPlugins = subDir.listFiles(this.pluginFilePattern);
         if(individualPlugins == null){
-            log.error(ConsoleTokens.colorizeText("&6The plugin folder was invalid or not found by removed, plugins will not be loaded."));
+            log.error(ConsoleTokens.colorizeText("&4The plugin folder was invalid or not found by removed, plugins will not be loaded. &8At: " + subDir.getPath()));
             return;
         }
         for (File InnerPlugin: individualPlugins){
@@ -113,7 +110,7 @@ public class PluginManager extends Manager implements IPluginInjectable{
         List<SessionListener> pluginListeners = target.getListeners();
 
         for (SessionListener listener : pluginListeners) {
-            log.info(ConsoleTokens.colorizeText("&7[&bEventBus&7] &7Removing Action Object &l{}"), listener.toString());
+            log.info(ConsoleTokens.colorizeText("&7[&bEventBus&7] &7Removing Handler Object &l{}"), listener.toString());
             botInstance.getSession().removeListener(listener);
         }
         target.onDisable();
@@ -132,7 +129,7 @@ public class PluginManager extends Manager implements IPluginInjectable{
 
             for (SessionListener listener : listeners) {
                 if (!provider.getSession().getListeners().contains(listener)) {
-                    log.info(ConsoleTokens.colorizeText("&7[&bEventBus&7] &6Injecting Action Object &7&l{}"), listener.toString());
+                    log.info(ConsoleTokens.colorizeText("&7[&bEventBus&7] &6Injecting Event Handler Object &7&l{}"), listener.toString());
                     provider.getSession().addListener(listener);
                 }
 
@@ -154,6 +151,7 @@ public class PluginManager extends Manager implements IPluginInjectable{
 
     public void reloadPlugin(AbstractRobot botInstance, String pluginName){
         File pluginFile = this.loadedExternalPlugin.get(pluginName);
+        disable(botInstance, pluginName);
         if (pluginFile.exists()){
             this.loadPlugin(botInstance, pluginFile);
         }

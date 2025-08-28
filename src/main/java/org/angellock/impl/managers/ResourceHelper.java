@@ -17,7 +17,7 @@ public abstract class ResourceHelper extends AbstractJsonAccessor {
 
         File outFile = new File((defaultPath != null) ? defaultPath : "");
         if (!outFile.exists()){
-            log.warn(ConsoleTokens.colorizeText("&eSpecified config file &5" + defaultPath + "&e not found, reading from the default file."));
+            log.warn(ConsoleTokens.colorizeText("&eSpecified config file &5" + defaultPath + "&e not found, &6reading from the default file: &3" + getFullFileName()));
             outFile = new File(this.getBaseConfigRoot());
         }
         if (outFile.isDirectory()) {
@@ -26,7 +26,7 @@ public abstract class ResourceHelper extends AbstractJsonAccessor {
         try {
             this.autoCopy(outFile);
         } catch (IOException e) {
-            log.info(ConsoleTokens.colorizeText("&7" + e));
+            log.info(ConsoleTokens.colorizeText("&8" + e));
         }
         this.configPath = outFile.toPath();
     }

@@ -1,10 +1,11 @@
 package org.angellock.impl.ingame;
 
 import org.angellock.impl.util.math.Position;
+import org.geysermc.mcprotocollib.auth.GameProfile;
 
 public class Player implements IPlayer{
-    private final int id;
-    private String name;
+    private int id;
+    private GameProfile profile;
     private Position position;
 
     public Player(int id, Position position) {
@@ -12,29 +13,41 @@ public class Player implements IPlayer{
         this.position = position;
     }
 
-    public int getId() {
-        return id;
+    public Player(GameProfile profile) {
+        this.profile = profile;
     }
 
-    public String getName() {
-        return name;
+    public GameProfile getProfile() {
+        return profile;
+    }
+
+    public void setProfile(GameProfile profile) {
+        this.profile = profile;
+    }
+
+    public int getId() {
+        return id;
     }
 
     public Position getPosition() {
         return position;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
     public void setPosition(Position position) {
         this.position = position;
     }
     public void setPosition(double x, double y, double z) {
-        this.position.setX(x);
-        this.position.setY(y);
-        this.position.setZ(z);
+        if (this.position != null) {
+            this.position.setX(x);
+            this.position.setY(y);
+            this.position.setZ(z);
+        } else {
+            this.position = new Position(x, y, z);
+        }
+    }
+
+    public void pushVelocity(double x, double y, double z) {
+        this.position.add(x, y, z);
     }
 
     @Override

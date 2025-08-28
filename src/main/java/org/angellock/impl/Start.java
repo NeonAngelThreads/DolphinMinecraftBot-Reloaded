@@ -15,10 +15,11 @@ import org.slf4j.LoggerFactory;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Optional;
 
 public class Start {
     private static final Logger log = LoggerFactory.getLogger(Start.class);
-    private static final String ARCHIVE_VERSION = Start.class.getPackage().getImplementationVersion();
+    private static final String ARCHIVE_VERSION = Optional.ofNullable(Start.class.getPackage().getImplementationVersion()).orElse("v1.2.1-BETA");
     private static final boolean win32 = System.getProperty("os.name").toLowerCase().contains("windows");
 
     public static void main(String[] args) {
@@ -30,6 +31,9 @@ public class Start {
         optionParser.accepts("owner").withRequiredArg().ofType(String.class);
         optionParser.accepts("username").withRequiredArg().ofType(String.class);
         optionParser.accepts("password").withRequiredArg().ofType(String.class);
+        optionParser.accepts("server").withRequiredArg().ofType(String.class);
+        optionParser.accepts("port").withRequiredArg().ofType(Integer.class);
+        optionParser.accepts("skin-recorder").withRequiredArg().ofType(String.class);
         ArgumentAcceptingOptionSpec<String> profilesArg = optionParser.accepts("profiles").withOptionalArg().ofType(String.class);
         ArgumentAcceptingOptionSpec<String> pluginDir = optionParser.accepts("plugin-dir").withOptionalArg().ofType(String.class);
         ArgumentAcceptingOptionSpec<String> configFile = optionParser.accepts("config-file").withOptionalArg().ofType(String.class);
@@ -41,20 +45,22 @@ public class Start {
             log.warn(ConsoleTokens.colorizeText("&6Omitted option arguments " + badOptions));
         }
 
-        String defaultConfigPath = parsedOption.valueOf(configFile);
-        if (defaultConfigPath != null){
-            if(Files.exists(Paths.get(defaultConfigPath))) {
-                log.info(ConsoleTokens.colorizeText("&dThe default config file path was specified: &5&l" + defaultConfigPath));
-            }
-            else {
-                log.error(ConsoleTokens.colorizeText("&4The specified config file path is invalid: " + defaultConfigPath));
-                defaultConfigPath = null;
-            }
+        String defaultConfigPath = Optional.ofNullable(parsedOption.valueOf(configFile)).orElse("Not-Set");
+        if (Files.exists(Paths.get(defaultConfigPath))) {
+            log.info(ConsoleTokens.colorizeText("&dThe default config file path was specified: &5&l" + defaultConfigPath));
+        } else {
+            log.error(ConsoleTokens.colorizeText("&4The specified config file path is invalid: " + defaultConfigPath));
+            defaultConfigPath = "Not-Set";
         }
         @Nullable String profiles = (parsedOption.valueOf(profilesArg));
 
         ConfigManager config = new ConfigManager(parsedOption, defaultConfigPath);
         BotManager botManager = new BotManager(defaultConfigPath, ".json", config).globalPluginManager(parsedOption.valueOf(pluginDir)).loadProfiles(profiles);
+
+        AnsiEscapes.printArt(ARCHIVE_VERSION);
+        config.printConfigSpec();
+
+        log.info(ConsoleTokens.colorizeText("&8Loading bots..."));
         botManager.startAll();
     }
 

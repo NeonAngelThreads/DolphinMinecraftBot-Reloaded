@@ -11,6 +11,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -43,8 +44,10 @@ public class PluginLoader{
                 jarClass = Class.forName(pluginManifest.getMainClass(), true, classLoader);
 
                 if(Plugin.class.isAssignableFrom(jarClass)){
-                    classLoader.close();
-                    return (Plugin) jarClass.getDeclaredConstructor().newInstance();
+//                    classLoader.close();
+                    Constructor<?> constructor = jarClass.getDeclaredConstructor();
+                    constructor.setAccessible(true);
+                    return (Plugin) constructor.newInstance();
                 }
 
             } catch (ClassNotFoundException var11) {
@@ -62,8 +65,11 @@ public class PluginLoader{
                     log.error(ConsoleTokens.colorizeText("&4Failed to load plugin: " + pluginManifest));
                     log.error(ConsoleTokens.colorizeText("&7" + e.toString()));
                 }
-            } catch (IOException e) {
-                throw new RuntimeException(e);
+            } finally {
+                try {
+                    classLoader.close();
+                } catch (IOException ignored) {
+                }
             }
 
 //            Class<?> pluginClass;

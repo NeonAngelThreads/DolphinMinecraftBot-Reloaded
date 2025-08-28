@@ -2,7 +2,6 @@ package org.angellock.impl;
 
 
 import com.google.gson.JsonElement;
-import org.angellock.impl.commands.Command;
 import org.angellock.impl.commands.CommandResponse;
 import org.angellock.impl.commands.CommandSerializer;
 import org.angellock.impl.commands.CommandSpec;
@@ -10,10 +9,11 @@ import org.angellock.impl.events.IConnectListener;
 import org.angellock.impl.events.IDisconnectListener;
 import org.angellock.impl.events.handlers.SystemChatHandler;
 import org.angellock.impl.events.packets.AddEntityPacket;
+import org.angellock.impl.events.packets.PlayerChatPacketHandler;
 import org.angellock.impl.events.packets.PlayerPositionPacket;
-import org.angellock.impl.events.packets.TeleportEntityPacket;
 import org.angellock.impl.ingame.IPlayer;
 import org.angellock.impl.ingame.Player;
+import org.angellock.impl.ingame.PlayerTracker;
 import org.angellock.impl.managers.BotManager;
 import org.angellock.impl.managers.ConfigManager;
 import org.angellock.impl.providers.Plugin;
@@ -22,6 +22,7 @@ import org.angellock.impl.providers.SessionProvider;
 import org.angellock.impl.util.ConsoleTokens;
 import org.angellock.impl.util.PlainTextSerializer;
 import org.angellock.impl.util.math.Position;
+import org.geysermc.mcprotocollib.network.BuiltinFlags;
 import org.geysermc.mcprotocollib.network.Session;
 import org.geysermc.mcprotocollib.network.tcp.TcpClientSession;
 import org.geysermc.mcprotocollib.protocol.MinecraftProtocol;
@@ -37,10 +38,9 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 public abstract class AbstractRobot implements ISendable, SessionProvider, IOptionalProcedures, IPlayer {
-    protected Session serverSession;
+    protected TcpClientSession serverSession;
     protected static final Logger log = LoggerFactory.getLogger(ConsoleTokens.colorizeText("&aDolphinBot"));
     private final ScheduledExecutorService reconnectScheduler = Executors.newScheduledThreadPool(1);
-    private final Map<Integer, Player> onlinePlayers = new HashMap<>();
     protected final Random randomizer = new Random();
     protected final PluginManager pluginManager;
     protected final int ReconnectionDelay;
@@ -54,18 +54,18 @@ public abstract class AbstractRobot implements ISendable, SessionProvider, IOpti
     private BotManager botManager;
     protected Position loginPos = new Position(0d,0d,0d);
     protected String server;
-    protected short port;
+    protected int port;
     protected String name;
     private String profileName;
     protected List<String> owners = new ArrayList<>();
     protected String password;
-    protected final CommandSpec commands = new CommandSpec();
+    protected final CommandSpec commands = new CommandSpec(this);
 
     public AbstractRobot(ConfigManager configManager, PluginManager pluginManager){
         this.config = configManager;
         String playerName = (String) this.config.getConfigValue("username");
         String serverAddress = (String) this.config.getConfigValue("server");
-        short serverPort = Short.parseShort((String) this.config.getConfigValue("port"));
+        int serverPort = (Integer) this.config.getConfigValue("port");
         this.password = (String) this.config.getConfigValue("password");
 
         this.pluginManager = pluginManager;
@@ -139,62 +139,71 @@ public abstract class AbstractRobot implements ISendable, SessionProvider, IOpti
         });
 
         this.serverSession.addListener(new SystemChatHandler().addExtraAction((chatPacket -> {
-            long timeElapse = System.currentTimeMillis();
-            CommandSerializer serializer = new CommandSerializer();
             PlainTextSerializer componentSerializer = new PlainTextSerializer();
             String commandMsg = componentSerializer.serialize(chatPacket.getContent());
+            CommandSerializer serializer = new CommandSerializer();
             CommandResponse meta = serializer.serialize(commandMsg);
-            if (meta != null) {
-                log.info("CommandList: {}, sender: {}", Arrays.toString(meta.getCommandList()), meta.getSender());
-                Command cmd = this.commands.getCommand(meta.getCommandList()[0]);
-                if(cmd != null){
-                    boolean success = cmd.activate(meta);
-                    if (!success){
-                        this.messageManager.putMessage("[ERR]未能执行该命令。发送者未在owners白名单.请在命令行中配置。");
-                    } else {
-                        long time = (System.currentTimeMillis() - timeElapse);
-                        if (time < 128000L) {
-                            this.messageManager.putMessage("[INFO]操作已成功完成。耗时" + time + "ms");
-                        }
-                    }
-                }
-            }
+
+            this.commands.executeCommand(meta);
         })));
+        this.serverSession.addListener(new PlayerChatPacketHandler().addExtraAction((chat) -> {
+            PlainTextSerializer nameSerializer = new PlainTextSerializer();
+
+            String sender = nameSerializer.serialize(chat.getName());
+            String commandMsg = chat.getContent();
+            CommandSerializer serializer = new CommandSerializer();
+            CommandResponse meta = serializer.serialize(commandMsg, sender);
+
+            this.commands.executeCommand(meta);
+        }));
 
         this.serverSession.addListener(new AddEntityPacket().addExtraAction((entityPacket -> {
             if (entityPacket.getType() == EntityType.PLAYER) {
-                if (this.onlinePlayers.get(entityPacket.getEntityId()) == null) {
-                    this.onlinePlayers.put(entityPacket.getEntityId(), new Player(entityPacket.getEntityId(), new Position(entityPacket.getX(), entityPacket.getY(), entityPacket.getZ())));
-                }
+                Player player = PlayerTracker.getPlayerByUUID(entityPacket.getUuid());
+                player.setPosition(entityPacket.getX(), entityPacket.getY(), entityPacket.getZ());
             }
         })));
-        this.serverSession.addListener(new TeleportEntityPacket().addExtraAction((teleportEntityPacket -> {
-            this.onlinePlayers.get(teleportEntityPacket.getId()).setPosition(teleportEntityPacket.getPosition().getX(), teleportEntityPacket.getPosition().getX(), teleportEntityPacket.getPosition().getZ());
-
-        })));
         this.serverSession.addListener(new PlayerPositionPacket().addExtraAction((packet->{
-            log.info(ConsoleTokens.colorizeText("&7Login At Position &b{}"), packet.getPosition());
+            log.info(ConsoleTokens.colorizeText("&7Logged-in At Position &b{}"), packet.getPosition());
             this.loginPos.from(packet.getPosition());
         })));
 
-        this.serverSession.connect(true);
+        this.serverSession.setFlag(BuiltinFlags.READ_TIMEOUT, -1);
+        this.serverSession.setFlag(BuiltinFlags.WRITE_TIMEOUT, -1);
+        this.serverSession.connect(true, false);
+
+//        Channel channel = this.serverSession.getChannel();
+//        final UserConnection user = new UserConnectionImpl(channel, true);
+//        new ProtocolPipelineImpl(user);
+//        channel.pipeline().addBefore("encoder", CommonTransformer.HANDLER_ENCODER_NAME, new MCPEncodeHandler(user)).addBefore("decoder", CommonTransformer.HANDLER_DECODER_NAME, new MCPDecodeHandler(user));
+
         this.connectDuration = System.currentTimeMillis();
-        if (this.isByPassedVerification) {
-            this.pluginManager.loadAllPlugins(this);
-        }
         try {
+            boolean connect = true;
+            boolean shouldWait = false;
+
             while (true) {
                 try {
                     Thread.sleep(100L);
                     if (!this.serverSession.isConnected()){
                         this.connectDuration = System.currentTimeMillis();
                         break;
+                    } else if (connect) {
+                        this.pluginManager.loadAllPlugins(this);
+                        connect = false;
+                    } else if (!shouldWait) {
+                        if (this.messageManager.pollMessage()) {
+                            shouldWait = true;
+                        }
+                    } else if (canSendMessages()) {
+                        shouldWait = false;
                     }
-                    this.messageManager.pollMessage();
                 }
                 catch (InterruptedException e){
                     this.serverSession.disconnect("Interrupted");
                     throw new RuntimeException(e);
+                } catch (IllegalArgumentException ignore) {
+                    log.info(ConsoleTokens.colorizeText("&6Unregistered packet error has been triggered!"));
                 }
             }
         } finally {
@@ -210,7 +219,11 @@ public abstract class AbstractRobot implements ISendable, SessionProvider, IOpti
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
-        this.reconnectScheduler.schedule(() -> this.connect(), 5, TimeUnit.SECONDS);
+        this.scheduleConnect(5);
+    }
+
+    public void scheduleConnect(int wait) {
+        this.reconnectScheduler.schedule(() -> this.connect(), 0, TimeUnit.SECONDS);
     }
 
     public void setBypassed(boolean bypassed) {
@@ -259,8 +272,8 @@ public abstract class AbstractRobot implements ISendable, SessionProvider, IOpti
         this.serverGamemode = serverGamemode;
     }
 
-    public Map<Integer, Player> getOnlinePlayers(){
-        return this.onlinePlayers;
+    public Map<UUID, Player> getOnlinePlayers() {
+        return PlayerTracker.getOnlinePlayers();
     }
 
     public CommandSpec getRegisteredCommands() {

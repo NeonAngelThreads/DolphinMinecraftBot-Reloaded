@@ -1,6 +1,5 @@
 package org.angellock.impl.extensions;
 
-import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import org.angellock.impl.AbstractRobot;
 import org.angellock.impl.events.handlers.ContainerPacketHandler;
@@ -52,6 +51,7 @@ public class PlayerVerificationPlugin extends AbstractPlugin {
     @Override
     public void onDisable() {
         this.hasLoggedIn = false;
+        this.inQueue = false;
         this.schedulerThread = null;
         this.autoLoginThread = null;
         this.getListeners().clear();
@@ -80,7 +80,7 @@ public class PlayerVerificationPlugin extends AbstractPlugin {
                             if (!this.isBypassed()) {
                                 if(this.verifyTimes < 3){
                                     this.verifyTimes++;
-                                    entityBot.getSession().disconnect(Component.empty());
+                                    entityBot.getSession().disconnect("Bypassing");
                                 }
                                 log.info(ConsoleTokens.colorizeText("&7正在进行人机验证..."));
                                 if (System.currentTimeMillis() - entityBot.getConnectTime() > 10700L) {
@@ -93,7 +93,7 @@ public class PlayerVerificationPlugin extends AbstractPlugin {
                                     this.verifyTimes = 0;
 
                                     Thread.sleep(3000L);
-                                    entityBot.getSession().disconnect(Component.empty());
+                                    entityBot.getSession().disconnect("Exiting After Registered");
 
                                 }
                             }
@@ -110,7 +110,7 @@ public class PlayerVerificationPlugin extends AbstractPlugin {
             this.autoLoginThread = new Thread(() -> {
                 while (true) {
                     try {
-                        Thread.sleep((this.inQueue)? 6500L : 1500L);
+                        Thread.sleep((this.inQueue) ? 10000L : 1500L);
                         if (!entityBot.getSession().isConnected()){
                             break;
                         }

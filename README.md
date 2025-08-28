@@ -42,19 +42,27 @@
    - Supporting colourful console logging strings expression `colorizeText("&6Hello &lWorld")`.
    - Automatic answer questions in `2b2t.xin` for speeding up login process.
    - Supporting to reload a plugin while the client is running on server.
+
+### Screenshots:
+
+<p align="center">
+   <img src="assets/dolphinbot1.png">
+</p>
+
 ## Introduction:
    **Features category:**  
    - [`Hot-Reloading Plugin`](#hot-swapping-plugins-in-game)
+- [`Terminal Interactions`]()
 
    **Implemented Event APIs:**
 
-- [`Event Handler System`](PluginDocs.md#3-register-event-handlers)
 - [`Command System`](PluginDocs.md#2-commands-system)
 - [`Packet Handlers`](PluginDocs.md#3-deep-understand-dolphinapis-)
+- [`Event Handler System`](PluginDocs.md#3-register-event-handlers)
    - [`Player Events`](PluginDocs.md#player-events)
-   - [`Force Unicode Chat`](PluginDocs.md#unicode-string-helper)
+- [`Force Unicode Chat`](PluginDocs.md#unicode-string-helper)
 
-   Command-line Arguments
+Command-line Arguments
 ## Getting Started
 In this section, you will understand below how-tos:  
   - **1. How to directly start a single bot with command-line.**  
@@ -76,12 +84,18 @@ In this section, you will understand below how-tos:
         In-game profile should be defined on below boot command-line.  
         An example of argument list:
         ```bash
-        java -jar "DolphinBot-[version].jar" -username=[username] -password=[password] -skin-recorder=[enable/disable]
+        java -jar "DolphinBot-[version]-full.jar" -username=[username] -password=[password] -skin-recorder=[enable/disable]
         ```
       `--username` : in-game displaying name of bot.  
       `--password` : password for login or register.  
       `--auto-reconnect` : whether reconnect to server when got kicked or disconnect by some reasons.  
-      `--skin-recorder` : whether automatic capture and save online players' skins.
+      `--skin-recorder` : whether automatic capture and save online players' skins.  
+      `--server` : target server address.  
+      `--port` : target server port.  
+      Example:
+        ```bash
+        java -jar "DolphinBot-[version]-full.jar" --username=[username] --password=[password] --server="0.0.0.0" --port="25565"
+        ```
          
       **Warning:**  command-line has high authority than config file, meaning that if options are duplicated, will only recognize 
       command-line, and ignore config file one.  
@@ -219,3 +233,5 @@ In this section, you will understand below how-tos:
 Dolphin bot supports you to hot-reload plugins in server, without quit the entire client and reconnecting to server.
 You can send `!reload <pluginName>` dolphin command in server chat.
 Console controlling are still in-developing, currently. 
+
+## Inputting In-game Messages from Terminal

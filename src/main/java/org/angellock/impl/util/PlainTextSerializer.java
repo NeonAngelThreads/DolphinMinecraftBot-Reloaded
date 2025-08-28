@@ -26,6 +26,6 @@ public class PlainTextSerializer implements ComponentSerializer<Component, Compo
     @Override
     public String serialize(@NotNull Component component) {
         this.serializePlain(component);
-        return result.toString();
+        return ConsoleTokens.fadeText(result.toString());
     }
 }

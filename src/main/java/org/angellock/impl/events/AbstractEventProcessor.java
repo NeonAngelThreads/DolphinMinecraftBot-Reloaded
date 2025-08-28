@@ -52,6 +52,12 @@ public abstract class AbstractEventProcessor<T extends MinecraftPacket> extends 
             }
         } catch (ClassCastException omit) {
             return;
+        } catch (IllegalArgumentException e) {
+            log.warn(ConsoleTokens.colorizeText("&6 {}"), e.getLocalizedMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
+        } catch (Throwable throwable) {
+            log.warn(ConsoleTokens.colorizeText("&7 {}"), throwable.getStackTrace());
         }
     }
 
@@ -59,7 +65,7 @@ public abstract class AbstractEventProcessor<T extends MinecraftPacket> extends 
     public void packetError(PacketErrorEvent event) {
         log.warn(ConsoleTokens.colorizeText("&eA packet error was detected: &7At event &6" + event));
         log.error(ConsoleTokens.colorizeText("&7" + event.getCause().toString()));
-        event.setSuppress(false);
+        event.setSuppress(true);
     }
 
     protected void dispatch(Event event) {

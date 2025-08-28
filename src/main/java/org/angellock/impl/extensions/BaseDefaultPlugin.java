@@ -6,6 +6,8 @@ import org.angellock.impl.events.handlers.LoginHandler;
 import org.angellock.impl.events.handlers.PlayerLogInfo;
 import org.angellock.impl.events.handlers.SystemChatHandler;
 import org.angellock.impl.events.handlers.TitlePacketHandler;
+import org.angellock.impl.ingame.Player;
+import org.angellock.impl.ingame.PlayerTracker;
 import org.angellock.impl.providers.AbstractPlugin;
 import org.angellock.impl.util.ConsoleTokens;
 import org.angellock.impl.util.TextComponentSerializer;
@@ -22,7 +24,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 public class BaseDefaultPlugin extends AbstractPlugin {
     protected static final Logger log = LoggerFactory.getLogger("BotEntity");
@@ -31,8 +35,6 @@ public class BaseDefaultPlugin extends AbstractPlugin {
     private long lastTitleTime;
     private String lastTitle;
     private String lastMsg;
-
-    private final Map<UUID, GameProfile> onlinePlayers = new HashMap<>();
 
     @Override
     public String getPluginName() {
@@ -72,23 +74,21 @@ public class BaseDefaultPlugin extends AbstractPlugin {
             String msg = componentSerializer.serialize(packet.getContent());
             if (!msg.equals(this.lastMsg)) {
                 this.lastMsg = msg;
-                log.info(msg);
+                log.info(ConsoleTokens.colorizeText(msg));
             }
         }));
 
         getListeners().add(new PlayerLogInfo.UpdateHandler().addExtraAction((updatePacket) -> {
-                PlayerListEntry[] players = updatePacket.getEntries();
+            PlayerListEntry[] players = updatePacket.getEntries();
 
-                for (PlayerListEntry player : players) {
-                    UUID profileUUID = player.getProfileId();
-                    GameProfile playerProfile = player.getProfile();
-                    this.onlinePlayers.put(profileUUID, playerProfile);
-                    if (playerProfile != null) {
-                        log.info(ConsoleTokens.colorizeText("&7[&a+&7]") + this.getLogMsg(playerProfile));
-                    }
+            for (PlayerListEntry player : players) {
+                GameProfile playerProfile = player.getProfile();
+                PlayerTracker.putPlayer(new Player(playerProfile));
+                if (playerProfile != null) {
+                    log.info(ConsoleTokens.colorizeText("&7[&a+&7]") + this.getLogMsg(playerProfile));
                 }
             }
-        ));
+        }));
 
         getListeners().add(new TitlePacketHandler().addExtraAction((titleTextPacket)-> {
             String currentText = ((TextComponent) titleTextPacket.getText()).content();
@@ -106,13 +106,12 @@ public class BaseDefaultPlugin extends AbstractPlugin {
                 return;
             }
             UUID logoutPlayer = packet.getProfileIds().get(0);
-            if (this.onlinePlayers.get(logoutPlayer) == null) {
+            if (PlayerTracker.getPlayerByUUID(logoutPlayer) == null) {
                 return;
             }
-            GameProfile player = this.onlinePlayers.get(logoutPlayer);
+            Player player = PlayerTracker.getPlayerByUUID(logoutPlayer);
 
-            log.info(ConsoleTokens.colorizeText("&7[&4-&7]") + this.getLogMsg(player));
-            this.onlinePlayers.remove(logoutPlayer);
+            log.info(ConsoleTokens.colorizeText("&7[&4-&7]") + this.getLogMsg(player.getProfile()));
         })));
 
     }

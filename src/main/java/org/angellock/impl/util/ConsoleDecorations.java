@@ -1,10 +1,8 @@
 package org.angellock.impl.util;
 
-import org.angellock.impl.util.colorutil.SimpleColor;
-
 public enum ConsoleDecorations {
     BOLD("\u001B[1m", 'L'),
-    UNDERLINED("\u001B[4m", 'N'),
+    UNDERLINED("\u001B[4m", 'n'),
     REVERSE("\u001B[7m", 'R' ),
     STRIKETHROUGH("",'m'),
     ITALIC("",'o'),

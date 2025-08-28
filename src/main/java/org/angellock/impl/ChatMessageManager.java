@@ -10,7 +10,6 @@ import org.slf4j.LoggerFactory;
 import java.time.Instant;
 import java.util.ArrayDeque;
 import java.util.BitSet;
-import java.util.LinkedList;
 import java.util.Queue;
 
 public class ChatMessageManager implements ISendable{
@@ -27,15 +26,17 @@ public class ChatMessageManager implements ISendable{
         this.chatMessageQueue.offer(msg);
     }
 
-    public void pollMessage(){
+    public boolean pollMessage() {
         String removal = this.chatMessageQueue.poll();
         if(removal != null) {
             this.sendMessagePacket(removal);
+            return true;
         }
+        return false;
     }
 
     private void sendMessagePacket(String message){
-        MinecraftPacket msgPacket = new ServerboundChatPacket(message, Instant.now().toEpochMilli(), 0L, null, 0, new BitSet());
+        MinecraftPacket msgPacket = new ServerboundChatPacket(message, Instant.now().toEpochMilli(), System.currentTimeMillis(), null, 0, new BitSet());
         log.info(ConsoleTokens.colorizeText("&7Sending in-game chat message: &b&l&o{}"), message);
         this.sendPacket(msgPacket);
     }

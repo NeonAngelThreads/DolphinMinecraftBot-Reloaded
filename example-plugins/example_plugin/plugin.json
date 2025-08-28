@@ -1,5 +1,5 @@
 {
-  "entry": "test.plugin.TestPlugin",
+  "entry": "testa.plugin.TestPlugin",
   "name": "MyPlugin",
   "version": "1.0.0"
 }

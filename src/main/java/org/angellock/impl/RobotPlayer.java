@@ -9,14 +9,18 @@ import org.angellock.impl.util.math.Position;
 
 public class RobotPlayer extends AbstractRobot {
     private long connectTime;
-    private long lastMsgTime;
+    private long lastMsgTime = 0;
     private final long msgDelay;
 
     public RobotPlayer(ConfigManager configManager, PluginManager pluginManager) {
         super(configManager, pluginManager);
 
         this.commands.register(new CommandBuilder().withName("reload").allowedUsers(this.owners).build((act) -> {
+            long timeElapse = System.currentTimeMillis();
             this.pluginManager.reloadPlugin(this, act.getCommandList()[1].toLowerCase());
+            long time = (System.currentTimeMillis() - timeElapse);
+            this.getMessageManager().putMessage("[INFO]操作已成功完成。耗时" + time + "ms");
+
         }));
 
         this.msgDelay = 3000L;
@@ -24,7 +28,12 @@ public class RobotPlayer extends AbstractRobot {
 
     @Override
     public boolean canSendMessages() {
-        return (lastMsgTime - System.currentTimeMillis() > msgDelay);
+        long t = System.currentTimeMillis();
+        if (t - lastMsgTime > msgDelay) {
+            this.lastMsgTime = t;
+            return true;
+        }
+        return false;
     }
 
     @Override
@@ -48,8 +57,8 @@ public class RobotPlayer extends AbstractRobot {
             this.getPluginManager().disableAllPlugins(this);
             log.info(ConsoleTokens.colorizeText("&aTiming completed."));
             this.getSession().getChannel().close();
+            this.getSession().getChannel().deregister();
             this.getSession().getChannel().closeFuture();
-            this.scheduleReconnect();
         }
     }
 
