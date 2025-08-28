@@ -43,7 +43,7 @@ public abstract class AbstractRobot implements ISendable, SessionProvider, IOpti
     private final ScheduledExecutorService reconnectScheduler = Executors.newScheduledThreadPool(1);
     protected final Random randomizer = new Random();
     protected final PluginManager pluginManager;
-    protected final int ReconnectionDelay;
+    protected final long ReconnectionDelay;
     protected final int TIME_OUT;
     protected MinecraftProtocol minecraftProtocol;
     protected ConfigManager config;
@@ -160,10 +160,14 @@ public abstract class AbstractRobot implements ISendable, SessionProvider, IOpti
         this.serverSession.addListener(new AddEntityPacket().addExtraAction((entityPacket -> {
             if (entityPacket.getType() == EntityType.PLAYER) {
                 Player player = PlayerTracker.getPlayerByUUID(entityPacket.getUuid());
-                player.setPosition(entityPacket.getX(), entityPacket.getY(), entityPacket.getZ());
+                if (player != null) {
+                    log.info(ConsoleTokens.colorizeText("[PlayerTracker]: &3A player was detected: &d{}"), player.getProfile().getName());
+                    player.setPosition(entityPacket.getX(), entityPacket.getY(), entityPacket.getZ());
+                }
             }
         })));
         this.serverSession.addListener(new PlayerPositionPacket().addExtraAction((packet->{
+            log.info(ConsoleTokens.colorizeText("&b&lSuccessfully logged-in to server world."));
             log.info(ConsoleTokens.colorizeText("&7Logged-in At Position &b{}"), packet.getPosition());
             this.loginPos.from(packet.getPosition());
         })));
@@ -215,7 +219,7 @@ public abstract class AbstractRobot implements ISendable, SessionProvider, IOpti
 
     public void scheduleReconnect() {
         try {
-            Thread.sleep(Long.parseLong((String) this.config.getConfigValue("reconnect-delay")));
+            Thread.sleep(this.ReconnectionDelay);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }

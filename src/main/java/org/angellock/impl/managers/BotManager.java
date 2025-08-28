@@ -8,6 +8,7 @@ import org.angellock.impl.extensions.Plugins;
 import org.angellock.impl.providers.Plugin;
 import org.angellock.impl.providers.PluginManager;
 import org.angellock.impl.util.ConsoleTokens;
+import org.angellock.impl.util.strings.JsonStrings;
 import org.angellock.impl.win32terminal.AnsiEscapes;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 import org.jetbrains.annotations.Nullable;
@@ -39,6 +40,7 @@ public class BotManager extends ResourceHelper {
         if (option != null) {
             return option.replaceAll("\"", "").split(";");
         }
+        log.warn(ConsoleTokens.colorizeText("&eBot profiles argument&3('--profiles')&e was &6NOT-SET&e, will load all of bots inside profile config file."));
         return new String[0];
     }
     public BotManager loadProfiles(String profileString){
@@ -51,6 +53,7 @@ public class BotManager extends ResourceHelper {
         }
 
         String[] profileKeys = this.escapeArrayCommandLine(profileString);
+        log.info(ConsoleTokens.colorizeText("&bBot profiles was specified: &d{}"), Arrays.toString(profileKeys));
 
         Map<String, JsonElement> jsonObject = this.readJSONContent();
         Map<String, JsonElement> profiles = jsonObject.get("profiles").getAsJsonObject().asMap();
@@ -72,6 +75,7 @@ public class BotManager extends ResourceHelper {
         String botName = profile.get("name").getAsString();
         String password = profile.get("password").getAsString();
         List<JsonElement> owners = profile.get("owner").getAsJsonArray().asList();
+        log.info(ConsoleTokens.colorizeText("&5Registering bot: &o&1[&9name=&b{}&9, password=&b{}&9, owner=&b{}&1]"), botName, password, JsonStrings.toListString(owners));
 
         List<JsonElement> plugins = profile.get("enabled_plugins").getAsJsonArray().asList();
         List<Plugin> pluginList = new ArrayList<>();
@@ -92,6 +96,7 @@ public class BotManager extends ResourceHelper {
 
     private void registerBot(String username, String password, String owner){
         String[] owners = this.escapeArrayCommandLine(owner);
+        log.info(ConsoleTokens.colorizeText("&5Registering bot: &o&1[&9name=&b{}&9, password=&b{}&9, owner=&b{}&1]"), username, password, Arrays.toString(owners));
 
         AbstractRobot botInst = new RobotPlayer(this.botConfigHelper, pluginManager)
                 .withName(username)
@@ -143,7 +148,7 @@ public class BotManager extends ResourceHelper {
             } catch (UserInterruptException w) {
                 System.exit(0);
             } catch (Throwable e) {
-                log.info(ConsoleTokens.colorizeText("&8Failed to send message: {}"), e.getLocalizedMessage());
+                log.info(ConsoleTokens.colorizeText("&8Failed to send message: &7{}"), e.getLocalizedMessage());
             }
         });
         this.terminalInput.start();

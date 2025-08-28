@@ -50,7 +50,7 @@ public class Start {
             log.info(ConsoleTokens.colorizeText("&dThe default config file path was specified: &5&l" + defaultConfigPath));
         } else {
             log.error(ConsoleTokens.colorizeText("&4The specified config file path is invalid: " + defaultConfigPath));
-            defaultConfigPath = "Not-Set";
+            defaultConfigPath = null;
         }
         @Nullable String profiles = (parsedOption.valueOf(profilesArg));
 

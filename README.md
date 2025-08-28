@@ -94,8 +94,16 @@ In this section, you will understand below how-tos:
       `--port` : target server port.  
       Example:
         ```bash
-        java -jar "DolphinBot-[version]-full.jar" --username=[username] --password=[password] --server="0.0.0.0" --port="25565"
+        java -jar "DolphinBot-[version]-full.jar" --username=[username] --password=[password] --server=0.0.0.0 --port=25565
         ```
+      or
+        ```bash
+        java -jar "DolphinBot-[version]-full.jar" --username=Dolphin1 --password=123 --server=2b2t.xin --port=25565 --owner=Melibertan
+        ```
+      Command profile will be loaded:
+      <p align="center">
+        <img src="assets/dolphinbot-profile.png">
+      </p>
          
       **Warning:**  command-line has high authority than config file, meaning that if options are duplicated, will only recognize 
       command-line, and ignore config file one.  

@@ -21,7 +21,7 @@ public class PlayerTracker {
         return UUIDMapping;
     }
 
-    private @Nullable
+    public @Nullable
     static Player getPlayerById(int entityID) {
         UUID uuid = UUIDMapping.get(entityID);
         if (uuid != null) {

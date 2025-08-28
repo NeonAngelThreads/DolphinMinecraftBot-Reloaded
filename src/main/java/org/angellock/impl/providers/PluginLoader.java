@@ -34,7 +34,7 @@ public class PluginLoader{
             return null;
         }
         try {
-            log.info("Loading plugin: {}", pluginManifest);
+            log.info(ConsoleTokens.colorizeText("Loading plugin: &8{}"), pluginManifest);
             URL[] urls = new URL[]{
                     pluginFile.toURI().toURL()
             };

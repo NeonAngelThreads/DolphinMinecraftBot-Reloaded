@@ -17,7 +17,11 @@ public abstract class ResourceHelper extends AbstractJsonAccessor {
 
         File outFile = new File((defaultPath != null) ? defaultPath : "");
         if (!outFile.exists()){
-            log.warn(ConsoleTokens.colorizeText("&eSpecified config file &5" + defaultPath + "&e not found, &6reading from the default file: &3" + getFullFileName()));
+            if (defaultPath != null) {
+                log.warn(ConsoleTokens.colorizeText("&eSpecified config file &c" + defaultPath + "&e not found, &6reading from the default file: &3.\\" + getFullFileName()));
+            } else {
+                log.warn(ConsoleTokens.colorizeText("&eResource file path &5" + getFullFileName() + "&e is &dNOT-SET, &6reading from the default file: &3.\\" + getFullFileName()));
+            }
             outFile = new File(this.getBaseConfigRoot());
         }
         if (outFile.isDirectory()) {
@@ -43,9 +47,11 @@ public abstract class ResourceHelper extends AbstractJsonAccessor {
                 }
                 in.close();
                 out.close();
+                log.info(ConsoleTokens.colorizeText("&9Extract config file &3" + getFullFileName()));
+
             }
             else {
-                log.error(ConsoleTokens.colorizeText("&dCould not extract the fallback config file &3" + getFullFileName()));
+                log.error(ConsoleTokens.colorizeText("&dCould not extract fallback config file &3" + getFullFileName()));
             }
         }
 //        this.configPath = Path.of(output, getFullFileName());
